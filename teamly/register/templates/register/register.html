@@ -1,0 +1,16 @@
+{% extends "main/base.html" %}
+
+{% block title %}Create an account — Teamly{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="register-heading">
+    <h1 id="register-heading">Create an account</h1>
+    <p class="meta">One account for your Teamly workspace.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-primary">Register</button>
+    </form>
+    <p class="meta">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+</section>
+{% endblock %}

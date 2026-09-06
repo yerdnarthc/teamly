@@ -1,0 +1,15 @@
+{% extends "main/base.html" %}
+
+{% block title %}Log out — Teamly{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="logout-heading">
+    <h1 id="logout-heading">Log out?</h1>
+    <p class="meta">You can log back in at any time.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn-primary">Confirm log out</button>
+    </form>
+    <p class="meta"><a href="{% url 'home' %}">Back to Home</a></p>
+</section>
+{% endblock %}
