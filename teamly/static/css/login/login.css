@@ -1,0 +1,2 @@
+/* Login slice: login-specific presentation only. Shared tokens live in base.html. */
+#login-heading + .meta { margin-bottom: 1rem; }

@@ -1,0 +1,36 @@
+from django.contrib.auth import login
+from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
+
+# Login slice: owns authentication (login + logout). No registration or
+# profile logic lives here.
+
+
+def login_view(request):
+    # AuthenticationForm already validates username/password for us.
+    if request.user.is_authenticated:
+        return redirect("home:home")
+
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            login(request, form.get_user())
+            next_url = request.POST.get("next") or request.GET.get("next")
+            # Only follow local next URLs — blocks login/?next=https://evil/ redirects.
+            if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+                return redirect(next_url)
+            return redirect("home:home")
+    else:
+        form = AuthenticationForm()
+
+    return render(request, "login/login.html", {"form": form})
+
+
+def logout_view(request):
+    # POST-only so a stray link prefetch can't log the user out.
+    if request.method == "POST":
+        auth_logout(request)
+        return redirect("login:login")
+    return render(request, "login/logout_confirm.html")

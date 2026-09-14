@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Login — Teamly{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/login/login.css' %}">{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="login-heading">
+    <h1 id="login-heading">Login</h1>
+    <p class="meta">Access your assignments.</p>
+    <form method="post">
+        {% csrf_token %}
+        {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+        {% endif %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-primary">Login</button>
+    </form>
+    <p class="meta">No account yet? <a href="{% url 'register:register' %}">Register</a></p>
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/login/login.js' %}"></script>{% endblock %}

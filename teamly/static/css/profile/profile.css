@@ -1,0 +1,2 @@
+/* Profile slice: profile-specific presentation only. */
+#profile-heading + .meta { margin-bottom: 1rem; }

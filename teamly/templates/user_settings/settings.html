@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Settings — Teamly{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/user_settings/user_settings.css' %}">{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="settings-heading">
+    <h1 id="settings-heading">Settings</h1>
+    <p class="meta">Preferences for {{ user.username }}.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-primary">Save settings</button>
+    </form>
+    <p class="meta"><a href="{% url 'home:home' %}">Back to Home</a></p>
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/user_settings/user_settings.js' %}"></script>{% endblock %}

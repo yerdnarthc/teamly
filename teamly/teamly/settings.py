@@ -12,8 +12,16 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 
+import os
+
+import dj_database_url
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Secrets (DATABASE_URL) live in teamly/.env — never hard-code them here.
+load_dotenv(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
@@ -37,8 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main.apps.MainConfig',
-    'register.apps.RegisterConfig',
+    # Vertical slices: one Django app per business capability.
+    'apps.login',
+    'apps.register',
+    'apps.home',
+    'apps.profile',
+    'apps.user_settings',
 ]
 
 MIDDLEWARE = [
@@ -56,7 +68,8 @@ ROOT_URLCONF = 'teamly.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        # Project-level templates/<feature>/ folders (vertical slicing).
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -73,13 +86,27 @@ WSGI_APPLICATION = 'teamly.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.1/ref/settings/#databases
+#
+# Supabase-ready: when teamly/.env defines DATABASE_URL (Supabase Session
+# Pooler connection string), Django uses Supabase PostgreSQL. Otherwise it
+# falls back to local SQLite so the project still runs before Supabase is
+# configured.
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.environ.get("DATABASE_URL"):
+    DATABASES = {
+        'default': dj_database_url.parse(
+            os.environ["DATABASE_URL"],
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -118,10 +145,15 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Project-level static/<css|js|images>/<feature>/ folders (vertical slicing).
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 # Auth redirects for @login_required and login/logout flow.
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'login'
+LOGIN_URL = 'login:login'
+LOGIN_REDIRECT_URL = 'home:home'
+LOGOUT_REDIRECT_URL = 'login:login'
 
 
 # Email

@@ -1,0 +1,2 @@
+/* Settings slice: settings-specific presentation only. */
+#settings-heading + .meta { margin-bottom: 1rem; }

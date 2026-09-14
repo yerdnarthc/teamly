@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Home — Teamly{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/home/home.css' %}">{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="home-heading">
+    <h1 id="home-heading">HOME SCREEN</h1>
+    <p>Welcome{% if user.is_authenticated %}, {{ user.username }}{% endif %}!</p>
+    <p class="meta">Your assignment overview will live here.</p>
+    <p class="meta"><a href="{% url 'profile:profile' %}">View profile</a> · <a href="{% url 'user_settings:settings' %}">Settings</a></p>
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/home/home.js' %}"></script>{% endblock %}
