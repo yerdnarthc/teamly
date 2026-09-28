@@ -51,6 +51,12 @@ INSTALLED_APPS = [
     'apps.home',
     'apps.profile',
     'apps.user_settings',
+    'apps.accounts',
+    'apps.academic',
+    'apps.assignments',
+    'apps.ai_assistant',
+    'apps.sync',
+    'apps.notifications',
 ]
 
 MIDDLEWARE = [

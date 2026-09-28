@@ -21,9 +21,10 @@ class ProfileSliceTests(TestCase):
         self.client.login(username="prof_user", password="Testpass123!")
         response = self.client.post(
             reverse("profile:profile"),
-            {"full_name": "Prof User", "bio": "IM2 student"},
+            {"first_name": "Prof", "last_name": "User", "bio": "IM2 student"},
         )
         self.assertRedirects(response, reverse("profile:profile"))
         profile = Profile.objects.get(user=self.user)
-        self.assertEqual(profile.full_name, "Prof User")
+        self.assertEqual(profile.first_name, "Prof")
+        self.assertEqual(profile.last_name, "User")
         self.assertEqual(profile.bio, "IM2 student")

@@ -26,5 +26,10 @@ urlpatterns = [
     path("home/", include("apps.home.urls")),
     path("profile/", include("apps.profile.urls")),
     path("settings/", include("apps.user_settings.urls")),
+    path("academic/", include("apps.academic.urls")),
+    path("assignments/", include("apps.assignments.urls")),
+    path("assistant/", include("apps.ai_assistant.urls")),
+    path("sync/", include("apps.sync.urls")),
+    path("notifications/", include("apps.notifications.urls")),
     path("", RedirectView.as_view(pattern_name="home:home", permanent=False)),
 ]

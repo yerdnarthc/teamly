@@ -1,0 +1,2 @@
+/* AI assistant slice: assistant-specific presentation only. */
+#assistant-heading + .meta { margin-bottom: 1rem; }

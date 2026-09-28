@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications — Teamly{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/notifications/notifications.css' %}">{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="notifications-heading">
+    <h1 id="notifications-heading">Notifications</h1>
+    <h2>Upcoming reminders</h2>
+    {% if reminders %}
+    <ul>
+        {% for reminder in reminders %}
+        <li>{{ reminder.assignment.title }} — {{ reminder.remind_at }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="meta">No pending reminders.</p>
+    {% endif %}
+    <h2>History</h2>
+    {% if logs %}
+    <ul>
+        {% for log in logs %}
+        <li>{{ log.sent_at }} — {{ log.kind }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="meta">Nothing sent yet.</p>
+    {% endif %}
+    <p class="meta"><a href="{% url 'home:home' %}">Back to Home</a></p>
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/notifications/notifications.js' %}"></script>{% endblock %}
