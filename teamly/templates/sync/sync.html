@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sync — Teamly{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/sync/sync.css' %}">{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="sync-heading">
+    <h1 id="sync-heading">Sync</h1>
+    <h2>Recent runs</h2>
+    {% if runs %}
+    <ul>
+        {% for run in runs %}
+        <li>{{ run.started_at }} — {{ run.result }} ({{ run.new_count }} new, {{ run.updated_count }} updated)</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="meta">No sync runs yet.</p>
+    {% endif %}
+    <h2>Recent activity</h2>
+    {% if events %}
+    <ul>
+        {% for event in events %}
+        <li>{{ event.created_at }} — {{ event.kind }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="meta">No activity yet.</p>
+    {% endif %}
+    <p class="meta"><a href="{% url 'home:home' %}">Back to Home</a></p>
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/sync/sync.js' %}"></script>{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Assignments — Teamly{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/assignments/assignments.css' %}">{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="assignments-heading">
+    <h1 id="assignments-heading">Assignments</h1>
+    {% if assignments %}
+    <ul>
+        {% for assignment in assignments %}
+        <li>{{ assignment.title }} — {{ assignment.status.label }} (due {{ assignment.due_at|default:"—" }})</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="meta">No assignments yet. They appear here after sync.</p>
+    {% endif %}
+    <p class="meta"><a href="{% url 'home:home' %}">Back to Home</a></p>
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/assignments/assignments.js' %}"></script>{% endblock %}

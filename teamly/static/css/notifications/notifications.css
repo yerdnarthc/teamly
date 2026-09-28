@@ -1,0 +1,2 @@
+/* Notifications slice: notifications-specific presentation only. */
+#notifications-heading + .meta { margin-bottom: 1rem; }
