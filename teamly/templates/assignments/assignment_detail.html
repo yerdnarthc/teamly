@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ assignment.title }} — Teamly{% endblock %}
+
+{% block extra_css %}
+<style>
+    .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 0.75rem;
+        background: var(--surface-subtle);
+        border: 1px solid var(--border);
+        padding: 0.75rem 1rem;
+        margin: 1rem 0;
+    }
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+    }
+    .meta-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--foreground-muted);
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    .meta-val {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--foreground);
+    }
+    .instructions-box {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        padding: 1rem;
+        margin-top: 0.5rem;
+        white-space: pre-wrap;
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="assignment-title">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+        <div>
+            <h1 id="assignment-title" style="margin-bottom: 0.25rem;">{{ assignment.title }}</h1>
+            <p class="meta">
+                {% if assignment.subject %}{{ assignment.subject.name }} · {% endif %}
+                Created {{ assignment.created_at|date:"M d, Y" }}
+            </p>
+        </div>
+        <span class="meta" style="border: 1px solid var(--border); padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+            Source: {{ assignment.get_source_display }}
+        </span>
+    </div>
+
+    <div class="meta-grid">
+        <div class="meta-item">
+            <span class="meta-label">Status</span>
+            <span class="meta-val">{{ assignment.status.label }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Priority</span>
+            <span class="meta-val">{{ assignment.priority.code }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Due Date</span>
+            <span class="meta-val">{{ assignment.due_at|date:"M d, Y h:i A"|default:"None" }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Last Updated</span>
+            <span class="meta-val">{{ assignment.updated_at|date:"M d, Y" }}</span>
+        </div>
+    </div>
+
+    <h2>Instructions & Requirements</h2>
+    {% if assignment.instructions %}
+    <div class="instructions-box">{{ assignment.instructions }}</div>
+    {% else %}
+    <p class="meta">No instructions provided.</p>
+    {% endif %}
+
+    <h2 style="margin-top: 1.5rem;">Update Status</h2>
+    <form method="post" action="{% url 'assignments:update_status' assignment.pk %}" style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem;">
+        {% csrf_token %}
+        <select name="status_code" style="padding: 0.5rem; font-size: 0.95rem; background: var(--surface); color: var(--foreground); border: 1px solid var(--border-strong);">
+            {% for st in statuses %}
+            <option value="{{ st.code }}" {% if st.code == assignment.status.code %}selected{% endif %}>{{ st.label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-primary">Update Status</button>
+    </form>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; pt: 1rem; border-top: 1px solid var(--border);">
+        <a href="{% url 'assignments:list' %}" class="meta" style="text-decoration: none;">← Back to Assignments</a>
+        <form method="post" action="{% url 'assignments:delete' assignment.pk %}" onsubmit="return confirm('Are you sure you want to delete this assignment?');" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-secondary" style="color: var(--danger); border-color: var(--danger); font-size: 0.85rem; padding: 0.4rem 0.8rem;">Delete Assignment</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

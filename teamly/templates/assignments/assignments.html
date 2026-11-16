@@ -3,22 +3,121 @@
 
 {% block title %}Assignments — Teamly{% endblock %}
 
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/assignments/assignments.css' %}">{% endblock %}
+{% block extra_css %}
+<style>
+    .filter-bar {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        align-items: center;
+        margin: 1rem 0;
+    }
+    .filter-chip {
+        padding: 0.3rem 0.6rem;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--foreground);
+        font-size: 0.85rem;
+        text-decoration: none;
+    }
+    .filter-chip.active {
+        background: var(--accent);
+        color: var(--accent-foreground);
+        border-color: var(--accent);
+    }
+    .assignment-card {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+    .assignment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+    }
+    .assignment-title {
+        font-weight: 700;
+        font-size: 1.05rem;
+        color: var(--foreground);
+        text-decoration: none;
+    }
+    .assignment-title:hover {
+        color: var(--accent);
+    }
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.2rem 0.45rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    .badge-status-NOT_STARTED { background: var(--surface-subtle); color: var(--foreground-muted); border: 1px solid var(--border); }
+    .badge-status-IN_PROGRESS { background: #E0E7FF; color: #3730A3; border: 1px solid #C7D2FE; }
+    .badge-status-COMPLETED { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+    .badge-prio-URGENT { background: #FEE2E2; color: var(--danger); border: 1px solid #FECACA; }
+    .badge-prio-HIGH { background: #FEF3C7; color: var(--warning); border: 1px solid #FDE68A; }
+    .badge-prio-MEDIUM { background: var(--surface-subtle); color: var(--foreground); border: 1px solid var(--border); }
+    .badge-prio-LOW { background: var(--surface-subtle); color: var(--foreground-muted); border: 1px solid var(--border); }
+</style>
+{% endblock %}
 
 {% block content %}
 <section class="panel" aria-labelledby="assignments-heading">
-    <h1 id="assignments-heading">Assignments</h1>
-    {% if assignments %}
-    <ul>
-        {% for assignment in assignments %}
-        <li>{{ assignment.title }} — {{ assignment.status.label }} (due {{ assignment.due_at|default:"—" }})</li>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <h1 id="assignments-heading" style="margin: 0;">Academic Assignments</h1>
+        <a href="{% url 'assignments:create' %}" class="btn-primary" style="display: inline-block; padding: 0.4rem 0.8rem; text-decoration: none; font-size: 0.9rem;">+ New Assignment</a>
+    </div>
+
+    <form method="get" style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Search assignments..." style="flex: 1;">
+        {% if active_status %}<input type="hidden" name="status" value="{{ active_status }}">{% endif %}
+        <button type="submit" class="btn-secondary">Search</button>
+        {% if search_query or active_status %}
+        <a href="{% url 'assignments:list' %}" class="btn-secondary" style="display: inline-block; padding: 0.55rem 0.8rem; text-decoration: none;">Clear</a>
+        {% endif %}
+    </form>
+
+    <div class="filter-bar">
+        <span class="meta" style="margin-right: 0.25rem;">Filter status:</span>
+        <a href="{% url 'assignments:list' %}{% if search_query %}?q={{ search_query }}{% endif %}" class="filter-chip {% if not active_status %}active{% endif %}">All</a>
+        {% for st in statuses %}
+        <a href="?status={{ st.code }}{% if search_query %}&q={{ search_query }}{% endif %}" class="filter-chip {% if active_status == st.code %}active{% endif %}">{{ st.label }}</a>
         {% endfor %}
-    </ul>
+    </div>
+
+    {% if assignments %}
+    <div>
+        {% for a in assignments %}
+        <article class="assignment-card">
+            <div class="assignment-header">
+                <a href="{% url 'assignments:detail' a.pk %}" class="assignment-title">{{ a.title }}</a>
+                <span class="badge badge-status-{{ a.status.code }}">{{ a.status.label }}</span>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                {% if a.subject %}
+                <span class="meta" style="font-weight: 600; color: {{ a.subject.color|default:'var(--foreground)' }};">
+                    {{ a.subject.name }}
+                </span>
+                <span class="meta">·</span>
+                {% endif %}
+                <span class="meta">Due: {{ a.due_at|date:"M d, Y h:i A"|default:"No due date" }}</span>
+                <span class="meta">·</span>
+                <span class="badge badge-prio-{{ a.priority.code }}">{{ a.priority.code }}</span>
+            </div>
+            {% if a.instructions %}
+            <p class="meta" style="margin-top: 0.25rem;">{{ a.instructions|truncatewords:24 }}</p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
     {% else %}
-    <p class="meta">No assignments yet. They appear here after sync.</p>
+    <p class="meta" style="margin-top: 1rem;">No assignments found matching your criteria.</p>
     {% endif %}
-    <p class="meta"><a href="{% url 'home:home' %}">Back to Home</a></p>
+
+    <p class="meta" style="margin-top: 1.5rem;"><a href="{% url 'home:home' %}">← Back to Dashboard</a></p>
 </section>
 {% endblock %}
-
-{% block extra_js %}<script src="{% static 'js/assignments/assignments.js' %}"></script>{% endblock %}
