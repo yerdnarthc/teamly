@@ -5,7 +5,7 @@
 - **Nested Django project.** Repo root is `C:\...\teamly\` (holds `.venv/`, `.git/`, `docs/`, `skills-lock.json`). The actual Django project is one level deeper: `teamly/manage.py`, `teamly/teamly/settings.py`, `teamly/db.sqlite3`. Running `python manage.py` from the repo root will fail — always `cd teamly` first.
 - **Apps (vertical slicing):** `teamly/apps/{login,register,home,profile,user_settings}` — one app per business capability, each with its own `views.py`/`urls.py`/`models.py`/`tests.py`. Project package: `teamly/teamly/` (`settings.py`, `urls.py`, `wsgi.py`) acts as `config/`.
 - **Project-level assets:** `teamly/templates/<feature>/` (HTML) + `teamly/static/{css,js,images}/<feature>/`. Only shared template is `templates/base.html`.
-- **Manifests.** `teamly/requirements.txt` (`Django==4.2.30`, `psycopg[binary]`, `dj-database-url`, `python-dotenv`). No `pyproject.toml`/`Makefile`. `teamly/.env.example` documents `DATABASE_URL`; real `.env` is git-ignored and never committed.
+- **Manifests.** `teamly/requirements.txt` (`Django==6.1.3`, `psycopg[binary]`, `dj-database-url`, `python-dotenv`). No `pyproject.toml`/`Makefile`. `teamly/.env.example` documents `DATABASE_URL`; real `.env` is git-ignored and never committed.
 - **DB:** Supabase-ready. `settings.py` uses `DATABASE_URL` (Supabase Session Pooler Postgres) when set, else falls back to SQLite at `teamly/db.sqlite3`. Git has no commits yet.
 
 ## Run & verify (exact)
