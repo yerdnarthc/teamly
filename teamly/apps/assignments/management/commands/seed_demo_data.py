@@ -2,7 +2,14 @@ import datetime
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from apps.assignments.models import Status, Priority, Assignment
+from apps.assignments.models import (
+    Assignment,
+    Attachment,
+    PersonalNote,
+    Priority,
+    Status,
+    Subtask,
+)
 from apps.academic.models import AcademicTerm, Subject
 from apps.profile.models import Profile
 
@@ -143,10 +150,21 @@ class Command(BaseCommand):
         ]
 
         for item in sample_assignments:
-            Assignment.objects.get_or_create(
+            asg, _ = Assignment.objects.get_or_create(
                 user=user,
                 title=item["title"],
                 defaults=item,
             )
+            if item["title"] == "Milestone 1: Vertical Slice Implementation":
+                Subtask.objects.get_or_create(assignment=asg, title="Define ERD physical schemas and models", defaults={"is_done": True, "sort_order": 1})
+                Subtask.objects.get_or_create(assignment=asg, title="Wire URLconfs into vertical slices", defaults={"is_done": True, "sort_order": 2})
+                Subtask.objects.get_or_create(assignment=asg, title="Implement student workspace detail view", defaults={"is_done": False, "sort_order": 3})
+                Subtask.objects.get_or_create(assignment=asg, title="Write comprehensive unit tests", defaults={"is_done": False, "sort_order": 4})
+
+                PersonalNote.objects.get_or_create(assignment=asg, body="Confirmed with Prof: models should use explicit db_table naming matching physical ERD.")
+                PersonalNote.objects.get_or_create(assignment=asg, body="Remember to test non-destructive migrations before committing.")
+
+                Attachment.objects.get_or_create(assignment=asg, label="Project Specification & Rubric PDF", defaults={"url_or_drive_id": "https://teams.microsoft.com/l/file/spec.pdf", "kind": Attachment.Kind.RUBRIC, "added_by": Attachment.AddedBy.TEAMS})
+                Attachment.objects.get_or_create(assignment=asg, label="Personal Architecture Notes", defaults={"url_or_drive_id": "https://github.com/yerdnarthc/teamly/blob/develop/docs/DESIGN.md", "kind": Attachment.Kind.LINK, "added_by": Attachment.AddedBy.USER})
 
         self.stdout.write(self.style.SUCCESS("Sample assignments seeded successfully."))
