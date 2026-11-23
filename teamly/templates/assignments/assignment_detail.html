@@ -82,6 +82,82 @@
     <p class="meta">No instructions provided.</p>
     {% endif %}
 
+    <!-- Checklist & Subtasks -->
+    <h2 style="margin-top: 1.5rem;">Checklist & Subtasks</h2>
+    <div style="border: 1px solid var(--border); background: var(--surface); padding: 1rem; margin-top: 0.5rem;">
+        {% if assignment.subtasks.all %}
+        <ul style="list-style: none; padding: 0; margin: 0 0 1rem 0; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% for sub in assignment.subtasks.all %}
+            <li style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;">
+                <form method="post" action="{% url 'assignments:toggle_subtask' assignment.pk sub.pk %}" style="display: inline-flex; align-items: center; gap: 0.6rem; margin: 0;">
+                    {% csrf_token %}
+                    <input type="checkbox" onchange="this.form.submit()" {% if sub.is_done %}checked{% endif %} style="cursor: pointer; width: 1.1rem; height: 1.1rem;">
+                    <span style="{% if sub.is_done %}text-decoration: line-through; color: var(--foreground-muted);{% endif %} font-size: 0.95rem;">
+                        {{ sub.title }}
+                    </span>
+                </form>
+                <span class="meta" style="font-size: 0.75rem;">{% if sub.is_done %}Done{% else %}Pending{% endif %}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="meta" style="margin-bottom: 0.75rem;">No checklist items yet.</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'assignments:add_subtask' assignment.pk %}" style="display: flex; gap: 0.5rem; margin: 0;">
+            {% csrf_token %}
+            <input type="text" name="title" placeholder="New subtask..." required style="flex: 1; padding: 0.45rem 0.6rem; font-size: 0.9rem;">
+            <button type="submit" class="btn-secondary" style="padding: 0.45rem 0.8rem; font-size: 0.85rem;">+ Add Subtask</button>
+        </form>
+    </div>
+
+    <!-- Attachments & Resources -->
+    <h2 style="margin-top: 1.5rem;">Attachments & Resources</h2>
+    <div style="border: 1px solid var(--border); background: var(--surface); padding: 1rem; margin-top: 0.5rem;">
+        {% if assignment.attachments.all %}
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% for att in assignment.attachments.all %}
+            <li style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--border);">
+                <div>
+                    <a href="{{ att.url_or_drive_id }}" target="_blank" rel="noopener noreferrer" style="font-weight: 600; text-decoration: none;">
+                        📎 {{ att.label }}
+                    </a>
+                    <span class="meta" style="font-size: 0.8rem; margin-left: 0.5rem;">({{ att.get_kind_display }})</span>
+                </div>
+                <span class="meta" style="font-size: 0.75rem; border: 1px solid var(--border); padding: 0.15rem 0.4rem;">
+                    {{ att.get_added_by_display }}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="meta" style="margin: 0;">No attachments linked to this assignment.</p>
+        {% endif %}
+    </div>
+
+    <!-- Personal Notes -->
+    <h2 style="margin-top: 1.5rem;">Personal Notes</h2>
+    <div style="border: 1px solid var(--border); background: var(--surface); padding: 1rem; margin-top: 0.5rem;">
+        {% if assignment.notes.all %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem;">
+            {% for note in assignment.notes.all %}
+            <div style="border-left: 3px solid var(--accent); padding-left: 0.75rem; background: var(--surface-subtle); padding: 0.5rem 0.75rem;">
+                <p style="margin: 0 0 0.25rem 0; font-size: 0.95rem; white-space: pre-wrap;">{{ note.body }}</p>
+                <span class="meta" style="font-size: 0.75rem;">{{ note.created_at|date:"M d, Y h:i A" }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="meta" style="margin-bottom: 0.75rem;">No personal notes yet.</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'assignments:add_note' assignment.pk %}" style="display: flex; flex-direction: column; gap: 0.5rem; margin: 0;">
+            {% csrf_token %}
+            <textarea name="body" rows="2" placeholder="Record private thoughts or questions..." required style="padding: 0.5rem; font-size: 0.9rem;"></textarea>
+            <button type="submit" class="btn-secondary" style="align-self: flex-start; padding: 0.45rem 0.8rem; font-size: 0.85rem;">+ Save Note</button>
+        </form>
+    </div>
+
     <h2 style="margin-top: 1.5rem;">Update Status</h2>
     <form method="post" action="{% url 'assignments:update_status' assignment.pk %}" style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem;">
         {% csrf_token %}

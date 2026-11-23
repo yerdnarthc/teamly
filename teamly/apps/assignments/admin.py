@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from .models import Assignment, AssignmentTag, Priority, Status, Tag
+from .models import (
+    Assignment,
+    AssignmentTag,
+    Attachment,
+    PersonalNote,
+    Priority,
+    Status,
+    Subtask,
+    Tag,
+)
 
 
 @admin.register(Status)
@@ -28,3 +37,20 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(AssignmentTag)
 class AssignmentTagAdmin(admin.ModelAdmin):
     list_display = ("assignment", "tag")
+
+
+@admin.register(Subtask)
+class SubtaskAdmin(admin.ModelAdmin):
+    list_display = ("title", "assignment", "is_done", "sort_order")
+    list_filter = ("is_done",)
+
+
+@admin.register(PersonalNote)
+class PersonalNoteAdmin(admin.ModelAdmin):
+    list_display = ("assignment", "created_at")
+
+
+@admin.register(Attachment)
+class AttachmentAdmin(admin.ModelAdmin):
+    list_display = ("label", "assignment", "kind", "added_by")
+

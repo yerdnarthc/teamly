@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Assignment, Priority, Status
+from .models import Assignment, Attachment, PersonalNote, Priority, Status, Subtask
 
 
 class AssignmentsSliceTests(TestCase):
@@ -100,3 +100,86 @@ class AssignmentsSliceTests(TestCase):
         response = self.client.post(reverse("assignments:delete", args=[assignment.pk]))
         self.assertRedirects(response, reverse("assignments:list"))
         self.assertFalse(Assignment.objects.filter(pk=assignment.pk).exists())
+
+    def test_subtask_lifecycle(self):
+        assignment = Assignment.objects.create(
+            user=self.user,
+            status=self.status,
+            priority=self.priority,
+            title="Project Milestone",
+        )
+        subtask = Subtask.objects.create(
+            assignment=assignment,
+            title="Complete Chapter 1 draft",
+            sort_order=1,
+        )
+        self.assertEqual(str(subtask), "Complete Chapter 1 draft")
+        self.assertFalse(subtask.is_done)
+        subtask.is_done = True
+        subtask.save()
+        self.assertTrue(assignment.subtasks.filter(is_done=True).exists())
+
+    def test_personal_note_and_attachment(self):
+        assignment = Assignment.objects.create(
+            user=self.user,
+            status=self.status,
+            priority=self.priority,
+            title="Research Paper",
+        )
+        note = PersonalNote.objects.create(
+            assignment=assignment,
+            body="Remember to check MLA citations.",
+        )
+        self.assertIn("Research Paper", str(note))
+        self.assertEqual(assignment.notes.count(), 1)
+
+        attachment = Attachment.objects.create(
+            assignment=assignment,
+            label="Project Rubric",
+            url_or_drive_id="https://example.com/rubric.pdf",
+            kind=Attachment.Kind.RUBRIC,
+            added_by=Attachment.AddedBy.TEAMS,
+        )
+        self.assertEqual(str(attachment), "Project Rubric")
+        self.assertEqual(assignment.attachments.count(), 1)
+
+    def test_assignment_workspace_views(self):
+        self.client.login(username="assign_user", password="Testpass123!")
+        assignment = Assignment.objects.create(
+            user=self.user,
+            status=self.status,
+            priority=self.priority,
+            title="Interactive Workspace Assignment",
+        )
+        # Add subtask
+        response = self.client.post(
+            reverse("assignments:add_subtask", args=[assignment.pk]),
+            {"title": "Review rubric checklist"},
+        )
+        self.assertRedirects(response, reverse("assignments:detail", args=[assignment.pk]))
+        subtask = assignment.subtasks.first()
+        self.assertIsNotNone(subtask)
+        self.assertFalse(subtask.is_done)
+
+        # Toggle subtask
+        response = self.client.post(
+            reverse("assignments:toggle_subtask", args=[assignment.pk, subtask.pk])
+        )
+        self.assertRedirects(response, reverse("assignments:detail", args=[assignment.pk]))
+        subtask.refresh_from_db()
+        self.assertTrue(subtask.is_done)
+
+        # Add note
+        response = self.client.post(
+            reverse("assignments:add_note", args=[assignment.pk]),
+            {"body": "Discussed with teammate."},
+        )
+        self.assertRedirects(response, reverse("assignments:detail", args=[assignment.pk]))
+        self.assertEqual(assignment.notes.count(), 1)
+
+        # Verify detail page renders them
+        detail_res = self.client.get(reverse("assignments:detail", args=[assignment.pk]))
+        self.assertContains(detail_res, "Review rubric checklist")
+        self.assertContains(detail_res, "Discussed with teammate.")
+
+

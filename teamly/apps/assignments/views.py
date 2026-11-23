@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .forms import AssignmentForm
-from .models import Assignment, Priority, Status
+from .models import Assignment, Attachment, PersonalNote, Priority, Status, Subtask
 
 
 @login_required
@@ -61,7 +61,9 @@ def assignment_create_view(request):
 def assignment_detail_view(request, pk):
     """Displays detailed instructions, requirements, and metadata for a specific assignment."""
     assignment = get_object_or_404(
-        Assignment.objects.select_related("subject", "status", "priority"),
+        Assignment.objects.select_related("subject", "status", "priority").prefetch_related(
+            "subtasks", "notes", "attachments"
+        ),
         pk=pk,
         user=request.user,
     )
@@ -71,6 +73,39 @@ def assignment_detail_view(request, pk):
         "assignments/assignment_detail.html",
         {"assignment": assignment, "statuses": statuses},
     )
+
+
+@login_required
+@require_POST
+def assignment_add_subtask_view(request, pk):
+    """Adds a student-managed checklist subtask to the assignment."""
+    assignment = get_object_or_404(Assignment, pk=pk, user=request.user)
+    title = request.POST.get("title", "").strip()
+    if title:
+        Subtask.objects.create(assignment=assignment, title=title)
+    return redirect("assignments:detail", pk=assignment.pk)
+
+
+@login_required
+@require_POST
+def assignment_toggle_subtask_view(request, pk, subtask_pk):
+    """Toggles completion state of a student subtask."""
+    assignment = get_object_or_404(Assignment, pk=pk, user=request.user)
+    subtask = get_object_or_404(Subtask, pk=subtask_pk, assignment=assignment)
+    subtask.is_done = not subtask.is_done
+    subtask.save(update_fields=["is_done"])
+    return redirect("assignments:detail", pk=assignment.pk)
+
+
+@login_required
+@require_POST
+def assignment_add_note_view(request, pk):
+    """Adds a timestamped personal note to the assignment."""
+    assignment = get_object_or_404(Assignment, pk=pk, user=request.user)
+    body = request.POST.get("body", "").strip()
+    if body:
+        PersonalNote.objects.create(assignment=assignment, body=body)
+    return redirect("assignments:detail", pk=assignment.pk)
 
 
 @login_required

@@ -4,7 +4,7 @@ from django.urls import reverse
 
 from apps.assignments.models import Assignment, Priority, Status
 
-from .models import AiSummary, Subtask
+from .models import AiFeedback, AiSummary
 
 
 class AiAssistantSliceTests(TestCase):
@@ -24,12 +24,14 @@ class AiAssistantSliceTests(TestCase):
             response, reverse("login:login") + "?next=/assistant/"
         )
 
-    def test_summary_and_subtask_str(self):
+    def test_summary_and_feedback(self):
         summary = AiSummary.objects.create(
             assignment=self.assignment, summary="Short version."
         )
         self.assertEqual(str(summary), "Summary for Essay")
-        subtask = Subtask.objects.create(
-            assignment=self.assignment, title="Draft outline"
+        feedback = AiFeedback.objects.create(
+            ai_summary=summary,
+            rating=AiFeedback.Rating.UP,
         )
-        self.assertEqual(str(subtask), "Draft outline")
+        self.assertIn("Feedback (UP)", str(feedback))
+
