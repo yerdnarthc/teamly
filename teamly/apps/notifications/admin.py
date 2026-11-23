@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import NotificationLog, Reminder
+from .models import NotificationLog, NotificationPreference, Reminder
+
+
+@admin.register(NotificationPreference)
+class NotificationPreferenceAdmin(admin.ModelAdmin):
+    list_display = ("user", "new_assignment", "deadline_enabled", "lead_hours")
 
 
 @admin.register(Reminder)

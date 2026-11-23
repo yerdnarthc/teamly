@@ -56,4 +56,13 @@ _Avoid_: Next assignment, future task
 A linked student Microsoft 365 Education authorization profile (tenant, Teams user ID, granted scopes) enabling automated assignment synchronization.
 _Avoid_: Linked account, SSO profile, Teams login
 
+**Notification Preference**:
+Student-configured alert rules determining whether new assignment announcements and upcoming deadline alerts are dispatched, including the lead-time window in hours.
+_Avoid_: Notification setting, alert rule
+
+**Deadline Reminder**:
+A scheduled alert event configured for an assignment approaching its deadline, calculated from the student's preferred lead time.
+_Avoid_: Alert, ping, notification item
+
+
 

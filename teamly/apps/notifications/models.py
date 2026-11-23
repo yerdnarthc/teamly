@@ -53,3 +53,21 @@ class NotificationLog(models.Model):
 
     def __str__(self):
         return f"{self.kind} to {self.user.username}"
+
+
+class NotificationPreference(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="notification_preference",
+    )
+    new_assignment = models.BooleanField(default=True)
+    deadline_enabled = models.BooleanField(default=True)
+    lead_hours = models.IntegerField(default=24)
+
+    class Meta:
+        db_table = "notification_preference"
+
+    def __str__(self):
+        return f"Notification preference for {self.user.username}"
+
