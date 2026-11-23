@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
@@ -181,5 +183,88 @@ class AssignmentsSliceTests(TestCase):
         detail_res = self.client.get(reverse("assignments:detail", args=[assignment.pk]))
         self.assertContains(detail_res, "Review rubric checklist")
         self.assertContains(detail_res, "Discussed with teammate.")
+
+
+class AssignmentQuerySetTests(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user(username="u1", password="pw")
+        self.user2 = User.objects.create_user(username="u2", password="pw")
+        self.status_pending = Status.objects.create(code="NOT_STARTED", label="Not Started")
+        self.status_done = Status.objects.create(code="COMPLETED", label="Completed")
+        self.priority = Priority.objects.create(code="HIGH", rank=3)
+
+    def test_for_user_and_status_filtering(self):
+        now = timezone.now()
+        # user1 active upcoming
+        a1 = Assignment.objects.create(
+            user=self.user1, status=self.status_pending, priority=self.priority,
+            title="A1", due_at=now + datetime.timedelta(days=2)
+        )
+        # user1 active overdue
+        a2 = Assignment.objects.create(
+            user=self.user1, status=self.status_pending, priority=self.priority,
+            title="A2", due_at=now - datetime.timedelta(days=1)
+        )
+        # user1 completed overdue deadline
+        a3 = Assignment.objects.create(
+            user=self.user1, status=self.status_done, priority=self.priority,
+            title="A3", due_at=now - datetime.timedelta(days=3)
+        )
+        # user2 assignment (isolation check)
+        a_other = Assignment.objects.create(
+            user=self.user2, status=self.status_pending, priority=self.priority,
+            title="Other", due_at=now + datetime.timedelta(days=1)
+        )
+
+        qs = Assignment.objects.for_user(self.user1)
+        self.assertEqual(qs.count(), 3)
+        self.assertNotIn(a_other, qs)
+
+        # active vs completed
+        active_qs = qs.active()
+        self.assertIn(a1, active_qs)
+        self.assertIn(a2, active_qs)
+        self.assertNotIn(a3, active_qs)
+
+        completed_qs = qs.completed()
+        self.assertIn(a3, completed_qs)
+        self.assertEqual(completed_qs.count(), 1)
+
+        # overdue (must exclude completed)
+        overdue_qs = qs.overdue(now=now)
+        self.assertEqual(list(overdue_qs), [a2])
+
+        # upcoming (must exclude completed and be in future)
+        upcoming_qs = qs.upcoming(now=now)
+        self.assertEqual(list(upcoming_qs), [a1])
+
+    def test_workload_metrics_aggregation(self):
+        now = timezone.now()
+        # 1 overdue pending
+        Assignment.objects.create(
+            user=self.user1, status=self.status_pending, priority=self.priority,
+            title="Overdue", due_at=now - datetime.timedelta(days=2)
+        )
+        # 1 completed
+        Assignment.objects.create(
+            user=self.user1, status=self.status_done, priority=self.priority,
+            title="Done", due_at=now - datetime.timedelta(days=1)
+        )
+        # 1 upcoming pending
+        Assignment.objects.create(
+            user=self.user1, status=self.status_pending, priority=self.priority,
+            title="Upcoming", due_at=now + datetime.timedelta(days=3)
+        )
+
+        metrics = Assignment.objects.for_user(self.user1).workload_metrics(now=now)
+        self.assertEqual(metrics["total_count"], 3)
+        self.assertEqual(metrics["completed_count"], 1)
+        self.assertEqual(metrics["active_count"], 2)
+        self.assertEqual(metrics["overdue_count"], 1)
+        self.assertEqual(len(metrics["upcoming_assignments"]), 1)
+        self.assertEqual(metrics["upcoming_assignments"][0].title, "Upcoming")
+        self.assertEqual(len(metrics["recent_assignments"]), 3)
+
+
 
 

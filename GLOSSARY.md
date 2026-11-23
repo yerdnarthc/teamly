@@ -35,3 +35,20 @@ _Avoid_: Comment, memo, scratchpad
 **Attachment**:
 A file, link, rubric, template, or specification associated with an assignment. Distinctly differentiated between external source assets from Microsoft Teams (read-only) and student-added resources (manageable).
 _Avoid_: File, link, resource, document
+
+**Workload Metrics**:
+Aggregated statistical indicators (total, active, completed, overdue, upcoming, and recent) summarizing a student's academic task load.
+_Avoid_: Dashboard stats, summary numbers, KPIs
+
+**Active Assignment**:
+An assignment whose status is not completed.
+_Avoid_: Open task, pending assignment, unfinished task
+
+**Overdue Assignment**:
+An active assignment whose deadline timestamp has passed without completion.
+_Avoid_: Late task, expired assignment
+
+**Upcoming Assignment**:
+An active assignment with a deadline timestamp in the future, ordered chronologically.
+_Avoid_: Next assignment, future task
+
