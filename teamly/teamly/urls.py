@@ -21,6 +21,7 @@ from django.views.generic.base import RedirectView
 # Vertical slicing: each feature owns its URLconf; config only includes them.
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("accounts/", include("apps.accounts.urls")),
     path("login/", include("apps.login.urls")),
     path("register/", include("apps.register.urls")),
     path("home/", include("apps.home.urls")),

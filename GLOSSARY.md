@@ -52,3 +52,8 @@ _Avoid_: Late task, expired assignment
 An active assignment with a deadline timestamp in the future, ordered chronologically.
 _Avoid_: Next assignment, future task
 
+**Connected Microsoft Account**:
+A linked student Microsoft 365 Education authorization profile (tenant, Teams user ID, granted scopes) enabling automated assignment synchronization.
+_Avoid_: Linked account, SSO profile, Teams login
+
+
