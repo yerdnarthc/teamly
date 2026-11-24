@@ -64,7 +64,7 @@ export default function ProfileScreen() {
             <Pressable
               onPress={() => handleSelectTheme("SYSTEM")}
               className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center ${
-                theme === "SYSTEM" ? "bg-brand-600 shadow-sm" : ""
+                theme === "SYSTEM" ? "bg-brand-600" : ""
               }`}
             >
               <Smartphone size={16} color={theme === "SYSTEM" ? "#ffffff" : "#64748b"} />
@@ -81,7 +81,7 @@ export default function ProfileScreen() {
             <Pressable
               onPress={() => handleSelectTheme("LIGHT")}
               className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center ${
-                theme === "LIGHT" ? "bg-brand-600 shadow-sm" : ""
+                theme === "LIGHT" ? "bg-brand-600" : ""
               }`}
             >
               <Sun size={16} color={theme === "LIGHT" ? "#ffffff" : "#64748b"} />
@@ -98,7 +98,7 @@ export default function ProfileScreen() {
             <Pressable
               onPress={() => handleSelectTheme("DARK")}
               className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center ${
-                theme === "DARK" ? "bg-brand-600 shadow-sm" : ""
+                theme === "DARK" ? "bg-brand-600" : ""
               }`}
             >
               <Moon size={16} color={theme === "DARK" ? "#ffffff" : "#64748b"} />
