@@ -11,6 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BookOpen, AlertCircle, Calendar, Check, X } from "lucide-react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { apiClient } from "../../src/services/apiClient";
 
 interface SubjectOption {
@@ -86,19 +87,24 @@ export default function NewAssignmentScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-slate-900 px-5 pt-6">
-      {/* Header bar */}
-      <View className="flex-row items-center justify-between mb-6">
-        <Text className="text-2xl font-bold text-slate-900 dark:text-white">
-          New Assignment
-        </Text>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 justify-center items-center"
-        >
-          <X size={18} color="#64748b" />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView edges={["top", "bottom", "left", "right"]} className="flex-1 bg-white dark:bg-slate-900">
+      <ScrollView
+        className="flex-1 px-5 pt-3"
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header bar */}
+        <View className="flex-row items-center justify-between mb-6">
+          <Text className="text-2xl font-bold text-slate-900 dark:text-white">
+            New Assignment
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 justify-center items-center"
+          >
+            <X size={18} color="#64748b" />
+          </TouchableOpacity>
+        </View>
 
       {/* Title Input */}
       <View className="mb-5">
@@ -222,18 +228,19 @@ export default function NewAssignmentScreen() {
         />
       </View>
 
-      {/* Submit Button */}
-      <TouchableOpacity
-        onPress={handleSubmit}
-        disabled={createMutation.isPending}
-        className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm active:bg-brand-700 mb-12"
-      >
-        {createMutation.isPending ? (
-          <ActivityIndicator color="#ffffff" />
-        ) : (
-          <Text className="text-white font-bold text-base">Create Assignment</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Submit Button */}
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={createMutation.isPending}
+          className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm active:bg-brand-700 mb-8"
+        >
+          {createMutation.isPending ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text className="text-white font-bold text-base">Create Assignment</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
