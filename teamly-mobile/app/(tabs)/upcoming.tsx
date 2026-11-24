@@ -62,21 +62,21 @@ function formatDueText(dueAtStr: string | null): {
   }
 
   if (diffHours <= 12) {
-    return { label: `Due in ${diffHours}h (${timeStr})`, isOverdue: false, isUrgent: true };
+    return { label: `In ${diffHours}h (${timeStr})`, isOverdue: false, isUrgent: true };
   }
 
   const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
   if (due.getTime() <= todayEnd.getTime()) {
-    return { label: `Today at ${timeStr}`, isOverdue: false, isUrgent: true };
+    return { label: `Today · ${timeStr}`, isOverdue: false, isUrgent: true };
   }
 
   const tomorrowEnd = new Date(todayEnd.getTime() + 24 * 60 * 60 * 1000);
   if (due.getTime() <= tomorrowEnd.getTime()) {
-    return { label: `Tomorrow at ${timeStr}`, isOverdue: false, isUrgent: false };
+    return { label: `Tomorrow · ${timeStr}`, isOverdue: false, isUrgent: false };
   }
 
   const monthDay = due.toLocaleDateString([], { month: "short", day: "numeric" });
-  return { label: `${monthDay} at ${timeStr}`, isOverdue: false, isUrgent: false };
+  return { label: `${monthDay} · ${timeStr}`, isOverdue: false, isUrgent: false };
 }
 
 export default function UpcomingScreen() {
@@ -314,51 +314,80 @@ export default function UpcomingScreen() {
                   <TouchableOpacity
                     key={item.id}
                     onPress={() => router.push(`/assignment/${item.id}`)}
-                    className="bg-white dark:bg-slate-800 p-4 rounded-2xl mb-2.5 border border-slate-100 dark:border-slate-700"
+                    className="bg-white dark:bg-slate-800 p-4 rounded-2xl mb-3 border border-slate-100 dark:border-slate-700"
                   >
-                    {/* Top Row: Subject & Due Badge */}
-                    <View className="flex-row justify-between items-center mb-1.5">
-                      {item.subject ? (
-                        <View
-                          className="px-2.5 py-0.5 rounded-full flex-row items-center"
-                          style={{ backgroundColor: `${subjectColor}15` }}
-                        >
+                    {/* Top Row: Subject (Left) and Priority / Source (Right) */}
+                    <View className="flex-row justify-between items-center mb-2.5">
+                      <View className="flex-1 mr-2">
+                        {item.subject ? (
                           <View
-                            className="w-2 h-2 rounded-full mr-1.5"
-                            style={{ backgroundColor: subjectColor }}
-                          />
-                          <Text
-                            className="text-[11px] font-semibold"
-                            style={{ color: subjectColor }}
+                            className="px-2.5 py-1 rounded-full flex-row items-center self-start max-w-[85%]"
+                            style={{ backgroundColor: `${subjectColor}15` }}
                           >
-                            {item.subject.name}
-                          </Text>
-                        </View>
-                      ) : (
-                        <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-0.5 rounded-full">
-                          <Text className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">
-                            General
-                          </Text>
-                        </View>
-                      )}
+                            <View
+                              className="w-2 h-2 rounded-full mr-1.5 flex-shrink-0"
+                              style={{ backgroundColor: subjectColor }}
+                            />
+                            <Text
+                              className="text-xs font-semibold"
+                              style={{ color: subjectColor }}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {item.subject.name}
+                            </Text>
+                          </View>
+                        ) : (
+                          <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full self-start">
+                            <Text className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                              General
+                            </Text>
+                          </View>
+                        )}
+                      </View>
 
-                      {/* Due Countdown Tag */}
+                      {item.priority.code === "HIGH" ? (
+                        <View className="bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-md border border-rose-200 dark:border-rose-900 flex-shrink-0">
+                          <Text className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+                            High
+                          </Text>
+                        </View>
+                      ) : item.source === "TEAMS" ? (
+                        <View className="bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-900 flex-shrink-0">
+                          <Text className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
+                            Teams
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
+
+                    {/* Middle: Title */}
+                    <Text
+                      className="text-base font-bold text-slate-900 dark:text-white mb-3"
+                      numberOfLines={2}
+                    >
+                      {item.title}
+                    </Text>
+
+                    {/* Dedicated Bottom Row: Deadline Badge (Left) & Metadata (Right) */}
+                    <View className="flex-row items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-700/60">
+                      {/* Due Countdown Tag with full breathing room */}
                       <View
-                        className={`px-2 py-0.5 rounded-md flex-row items-center ${
+                        className={`px-2.5 py-1 rounded-xl flex-row items-center border ${
                           dueInfo.isOverdue
-                            ? "bg-rose-100 dark:bg-rose-950/70"
+                            ? "bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800"
                             : dueInfo.isUrgent
-                            ? "bg-amber-100 dark:bg-amber-950/70"
-                            : "bg-slate-100 dark:bg-slate-700"
+                            ? "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800"
+                            : "bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
                         }`}
                       >
                         {dueInfo.isOverdue ? (
-                          <AlertCircle size={11} color="#e11d48" />
+                          <AlertCircle size={12} color="#e11d48" />
                         ) : (
-                          <Clock size={11} color={dueInfo.isUrgent ? "#d97706" : "#64748b"} />
+                          <Clock size={12} color={dueInfo.isUrgent ? "#d97706" : "#64748b"} />
                         )}
                         <Text
-                          className={`text-[10px] font-semibold ml-1 ${
+                          className={`text-xs font-semibold ml-1.5 ${
                             dueInfo.isOverdue
                               ? "text-rose-700 dark:text-rose-300"
                               : dueInfo.isUrgent
@@ -369,40 +398,18 @@ export default function UpcomingScreen() {
                           {dueInfo.label}
                         </Text>
                       </View>
-                    </View>
 
-                    {/* Title */}
-                    <Text
-                      className="text-base font-bold text-slate-900 dark:text-white mb-2"
-                      numberOfLines={2}
-                    >
-                      {item.title}
-                    </Text>
-
-                    {/* Bottom Row: Subtasks & Priority */}
-                    <View className="flex-row justify-between items-center pt-2 border-t border-slate-50 dark:border-slate-700/60">
-                      <View className="flex-row items-center">
-                        {item.subtask_count > 0 ? (
-                          <View className="flex-row items-center mr-3">
-                            <ListTodo size={13} color="#64748b" />
-                            <Text className="text-xs text-slate-500 ml-1 font-medium">
-                              {item.completed_subtask_count}/{item.subtask_count} subtasks
+                      {/* Right: Subtasks / Action Chevron */}
+                      <View className="flex-row items-center ml-2">
+                        {item.subtask_count > 0 && (
+                          <View className="flex-row items-center mr-2 bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-lg">
+                            <ListTodo size={11} color="#64748b" />
+                            <Text className="text-[11px] text-slate-600 dark:text-slate-300 ml-1 font-medium">
+                              {item.completed_subtask_count}/{item.subtask_count}
                             </Text>
                           </View>
-                        ) : null}
-
-                        {item.priority.code === "HIGH" && (
-                          <Text className="text-[11px] font-bold text-rose-600 dark:text-rose-400">
-                            High Priority
-                          </Text>
                         )}
-                      </View>
-
-                      <View className="flex-row items-center">
-                        <Text className="text-xs text-brand-600 dark:text-brand-400 font-medium mr-0.5">
-                          View
-                        </Text>
-                        <ChevronRight size={14} color="#2563eb" />
+                        <ChevronRight size={15} color="#94a3b8" />
                       </View>
                     </View>
                   </TouchableOpacity>
