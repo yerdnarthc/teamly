@@ -1,4 +1,6 @@
-from django.contrib.auth.models import User
+# teamly/apps/profile/models.py
+
+from django.conf import settings
 from django.db import models
 
 # Profile slice: owns user profile data. Kept separate from Home/Register
@@ -10,9 +12,15 @@ from django.db import models
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    full_name = models.CharField(max_length=150, blank=True)
-    bio = models.TextField(blank=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    # Full name is a composite attribute; divided into First Name, Middle Name, and Last Name.
+    first_name = models.CharField(max_length=80, blank=True)    # First Name
+    middle_name = models.CharField(max_length=80, blank=True)   # Middle Name
+    last_name = models.CharField(max_length=80, blank=True)     # Last Name
+    bio = models.TextField(blank=True)                          # Bio description
 
-    def __str__(self):
+    class Meta:
+        db_table = "profile_profile"
+
+    def __str__(self): 
         return self.user.username

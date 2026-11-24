@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Assignment Synchronization — Teamly{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sync-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .status-pill {
+        display: inline-block;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.2rem 0.5rem;
+        text-transform: uppercase;
+        border: 1px solid var(--border);
+    }
+    .status-pill.success { background: #DCFCE7; color: #166534; border-color: #BBF7D0; }
+    .status-pill.partial { background: #FEF3C7; color: #B45309; border-color: #FDE68A; }
+    .status-pill.failed { background: #FEE2E2; color: #B91C1C; border-color: #FECACA; }
+    .cursor-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .cursor-card {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        padding: 1rem;
+    }
+    .messages-box {
+        background: #DCFCE7;
+        color: #166534;
+        border: 1px solid #BBF7D0;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="sync-heading">
+    <div class="sync-actions">
+        <div>
+            <h1 id="sync-heading" style="margin: 0 0 0.25rem;">Assignment Synchronization</h1>
+            <p class="meta" style="margin: 0;">Automated external ingestion engine for Microsoft Teams classes.</p>
+        </div>
+        <form method="post" action="{% url 'sync:trigger' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary">Sync All Classes Now</button>
+        </form>
+    </div>
+
+    {% if messages %}
+    <div class="messages-box">
+        {% for message in messages %}
+            <div>{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <h2>Connected Subjects &amp; Sync Cursors</h2>
+    {% if subjects_with_status %}
+    <div class="cursor-grid">
+        {% for item in subjects_with_status %}
+        <div class="cursor-card">
+            <div style="font-weight: 700; font-size: 1rem; margin-bottom: 0.25rem; color: {{ item.subject.color|default:'inherit' }};">
+                {{ item.subject.name }}
+            </div>
+            <div class="meta" style="font-size: 0.8rem; margin-bottom: 0.5rem;">
+                Teams Group: <code>{{ item.subject.teams_group_id }}</code>
+            </div>
+            <div class="meta" style="font-size: 0.85rem;">
+                Last synced: 
+                {% if item.cursor and item.cursor.last_ok_at %}
+                    <strong>{{ item.cursor.last_ok_at|date:"M d, Y h:i A" }}</strong>
+                {% else %}
+                    <span class="meta">Never synced</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="meta">No connected subjects found. Add subjects in the Academic catalog.</p>
+    {% endif %}
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+        <div>
+            <h2>Recent Synchronization Runs</h2>
+            {% if runs %}
+            <ul style="padding-left: 1.25rem; margin: 0; font-size: 0.9rem; line-height: 1.8;">
+                {% for run in runs %}
+                <li>
+                    <strong>{{ run.started_at|date:"M d, H:i" }}</strong> — 
+                    <span class="status-pill {{ run.result|lower }}">{{ run.result }}</span>
+                    <span class="meta">({{ run.new_count }} new, {{ run.updated_count }} updated)</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="meta">No sync runs recorded yet.</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <h2>Recent Activity Events</h2>
+            {% if events %}
+            <ul style="padding-left: 1.25rem; margin: 0; font-size: 0.9rem; line-height: 1.8;">
+                {% for event in events %}
+                <li>
+                    <span class="meta">{{ event.created_at|date:"M d, H:i" }}</span> — 
+                    <code>{{ event.kind }}</code>
+                    {% if event.assignment %}
+                        <span class="meta">({{ event.assignment.title|truncatewords:4 }})</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="meta">No recent assignment events detected.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <p class="meta" style="margin-top: 2rem;">
+        <a href="{% url 'home:home' %}">&larr; Back to Dashboard</a> |
+        <a href="{% url 'assignments:list' %}">Assignments List</a>
+    </p>
+</section>
+{% endblock %}

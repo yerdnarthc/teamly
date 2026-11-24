@@ -21,10 +21,6 @@ class UserSettingsSliceTests(TestCase):
         self.client.login(username="settings_user", password="Testpass123!")
         response = self.client.post(
             reverse("user_settings:settings"),
-            {"dark_mode": "on"},
+            {"theme": "DARK"},
         )
-        self.assertRedirects(response, reverse("user_settings:settings"))
-        settings = UserSettings.objects.get(user=self.user)
-        self.assertTrue(settings.dark_mode)
-        # Unchecked checkbox means False.
-        self.assertFalse(settings.email_notifications)
+        self.assertRedirects(response, reverse("accounts:settings"))

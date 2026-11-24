@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Subjects — Teamly{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/academic/academic.css' %}">{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="academic-heading">
+    <h1 id="academic-heading">Subjects</h1>
+    {% if subjects %}
+    <ul>
+        {% for subject in subjects %}
+        <li>{{ subject.name }} ({{ subject.term.name }})</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="meta">No subjects yet. They appear here after sync.</p>
+    {% endif %}
+    <p class="meta"><a href="{% url 'home:home' %}">Back to Home</a></p>
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/academic/academic.js' %}"></script>{% endblock %}

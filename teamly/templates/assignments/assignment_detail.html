@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ assignment.title }} — Teamly{% endblock %}
+
+{% block extra_css %}
+<style>
+    .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 0.75rem;
+        background: var(--surface-subtle);
+        border: 1px solid var(--border);
+        padding: 0.75rem 1rem;
+        margin: 1rem 0;
+    }
+    .meta-item {
+        display: flex;
+        flex-direction: column;
+    }
+    .meta-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--foreground-muted);
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    .meta-val {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--foreground);
+    }
+    .instructions-box {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        padding: 1rem;
+        margin-top: 0.5rem;
+        white-space: pre-wrap;
+        line-height: 1.6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="assignment-title">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+        <div>
+            <h1 id="assignment-title" style="margin-bottom: 0.25rem;">{{ assignment.title }}</h1>
+            <p class="meta">
+                {% if assignment.subject %}{{ assignment.subject.name }} · {% endif %}
+                Created {{ assignment.created_at|date:"M d, Y" }}
+            </p>
+        </div>
+        <span class="meta" style="border: 1px solid var(--border); padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+            Source: {{ assignment.get_source_display }}
+        </span>
+    </div>
+
+    <div class="meta-grid">
+        <div class="meta-item">
+            <span class="meta-label">Status</span>
+            <span class="meta-val">{{ assignment.status.label }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Priority</span>
+            <span class="meta-val">{{ assignment.priority.code }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Due Date</span>
+            <span class="meta-val">{{ assignment.due_at|date:"M d, Y h:i A"|default:"None" }}</span>
+        </div>
+        <div class="meta-item">
+            <span class="meta-label">Last Updated</span>
+            <span class="meta-val">{{ assignment.updated_at|date:"M d, Y" }}</span>
+        </div>
+    </div>
+
+    <h2>Instructions & Requirements</h2>
+    {% if assignment.instructions %}
+    <div class="instructions-box">{{ assignment.instructions }}</div>
+    {% else %}
+    <p class="meta">No instructions provided.</p>
+    {% endif %}
+
+    <!-- AI Assistant Analysis Card -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.75rem;">
+        <h2 style="margin: 0;">AI Assistant Analysis</h2>
+        {% if ai_summary %}
+        <form method="post" action="{% url 'ai_assistant:analyze' assignment.pk %}" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-secondary" style="font-size: 0.8rem; padding: 0.25rem 0.6rem;">
+                🔄 Refresh Analysis
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div style="border: 1px solid var(--border); background: var(--surface); padding: 1.25rem; margin-top: 0.5rem; border-radius: 4px;">
+        <p class="meta" style="font-size: 0.8rem; margin: 0 0 1rem 0; color: var(--foreground-muted); display: flex; align-items: center; gap: 0.4rem;">
+            <span>ℹ️</span>
+            <em>AI summaries and suggestions are assistance only — always verify against professor instructions.</em>
+        </p>
+
+        {% if ai_summary %}
+            <!-- Summary Text -->
+            <div style="margin-bottom: 1rem;">
+                <h3 style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--foreground-muted); margin-bottom: 0.35rem;">
+                    Executive Summary
+                </h3>
+                <p style="margin: 0; line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap;">{{ ai_summary.summary }}</p>
+            </div>
+
+            <!-- Key Requirements -->
+            {% if ai_summary.requirements %}
+            <div style="margin-bottom: 1rem;">
+                <h3 style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--foreground-muted); margin-bottom: 0.35rem;">
+                    Key Requirements & Deliverables
+                </h3>
+                <ul style="margin: 0; padding-left: 1.25rem; line-height: 1.5;">
+                    {% for req in ai_summary.requirements %}
+                    <li style="margin-bottom: 0.25rem;">{{ req }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Suggested Subtasks for Adoption -->
+            {% if ai_summary.suggested_subtasks %}
+            <div style="margin-bottom: 1rem; border-top: 1px dashed var(--border); padding-top: 1rem;">
+                <h3 style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--foreground-muted); margin-bottom: 0.35rem;">
+                    Suggested Action Items
+                </h3>
+                <p class="meta" style="font-size: 0.8rem; margin-bottom: 0.75rem;">
+                    Review AI suggestions and adopt them into your personal checklist one by one.
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    {% for suggestion in ai_summary.suggested_subtasks %}
+                    <div style="display: flex; align-items: center; justify-content: space-between; background: var(--surface-subtle); padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 3px;">
+                        <span style="font-size: 0.9rem;">{{ suggestion }}</span>
+                        {% if suggestion in existing_subtask_titles %}
+                            <span class="meta" style="color: var(--accent); font-weight: 600; font-size: 0.8rem;">
+                                ✓ In Checklist
+                            </span>
+                        {% else %}
+                            <form method="post" action="{% url 'ai_assistant:adopt' assignment.pk %}" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="title" value="{{ suggestion }}">
+                                <button type="submit" class="btn-secondary" style="font-size: 0.8rem; padding: 0.25rem 0.6rem; cursor: pointer;">
+                                    + Adopt Subtask
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Feedback & Model Metadata -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 0.75rem;">
+                <span class="meta" style="font-size: 0.75rem;">
+                    Generated by: {{ ai_summary.model|default:"Deterministic Advisor" }} · {{ ai_summary.created_at|date:"M d, Y h:i A" }}
+                </span>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="meta" style="font-size: 0.75rem;">Was this helpful?</span>
+                    <form method="post" action="{% url 'ai_assistant:feedback' ai_summary.pk %}" style="display: inline-flex; gap: 0.25rem; margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="rating" value="UP">
+                        <button type="submit" title="Helpful" style="background: none; border: 1px solid var(--border); cursor: pointer; padding: 0.2rem 0.4rem; font-size: 0.85rem; border-radius: 3px;">👍</button>
+                    </form>
+                    <form method="post" action="{% url 'ai_assistant:feedback' ai_summary.pk %}" style="display: inline-flex; gap: 0.25rem; margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="rating" value="DOWN">
+                        <button type="submit" title="Not helpful" style="background: none; border: 1px solid var(--border); cursor: pointer; padding: 0.2rem 0.4rem; font-size: 0.85rem; border-radius: 3px;">👎</button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <!-- Not analyzed yet -->
+            <div style="text-align: center; padding: 1rem 0;">
+                <p class="meta" style="margin-bottom: 0.75rem;">
+                    Extract key deliverables, requirements, and suggested subtasks from this assignment's instructions.
+                </p>
+                <form method="post" action="{% url 'ai_assistant:analyze' assignment.pk %}" style="margin: 0;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
+                        ✨ Generate AI Analysis
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Checklist & Subtasks -->
+    <h2 style="margin-top: 1.5rem;">Checklist & Subtasks</h2>
+    <div style="border: 1px solid var(--border); background: var(--surface); padding: 1rem; margin-top: 0.5rem;">
+        {% if assignment.subtasks.all %}
+        <ul style="list-style: none; padding: 0; margin: 0 0 1rem 0; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% for sub in assignment.subtasks.all %}
+            <li style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;">
+                <form method="post" action="{% url 'assignments:toggle_subtask' assignment.pk sub.pk %}" style="display: inline-flex; align-items: center; gap: 0.6rem; margin: 0;">
+                    {% csrf_token %}
+                    <input type="checkbox" onchange="this.form.submit()" {% if sub.is_done %}checked{% endif %} style="cursor: pointer; width: 1.1rem; height: 1.1rem;">
+                    <span style="{% if sub.is_done %}text-decoration: line-through; color: var(--foreground-muted);{% endif %} font-size: 0.95rem;">
+                        {{ sub.title }}
+                    </span>
+                </form>
+                <span class="meta" style="font-size: 0.75rem;">{% if sub.is_done %}Done{% else %}Pending{% endif %}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="meta" style="margin-bottom: 0.75rem;">No checklist items yet.</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'assignments:add_subtask' assignment.pk %}" style="display: flex; gap: 0.5rem; margin: 0;">
+            {% csrf_token %}
+            <input type="text" name="title" placeholder="New subtask..." required style="flex: 1; padding: 0.45rem 0.6rem; font-size: 0.9rem;">
+            <button type="submit" class="btn-secondary" style="padding: 0.45rem 0.8rem; font-size: 0.85rem;">+ Add Subtask</button>
+        </form>
+    </div>
+
+    <!-- Attachments & Resources -->
+    <h2 style="margin-top: 1.5rem;">Attachments & Resources</h2>
+    <div style="border: 1px solid var(--border); background: var(--surface); padding: 1rem; margin-top: 0.5rem;">
+        {% if assignment.attachments.all %}
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% for att in assignment.attachments.all %}
+            <li style="display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid var(--border);">
+                <div>
+                    <a href="{{ att.url_or_drive_id }}" target="_blank" rel="noopener noreferrer" style="font-weight: 600; text-decoration: none;">
+                        📎 {{ att.label }}
+                    </a>
+                    <span class="meta" style="font-size: 0.8rem; margin-left: 0.5rem;">({{ att.get_kind_display }})</span>
+                </div>
+                <span class="meta" style="font-size: 0.75rem; border: 1px solid var(--border); padding: 0.15rem 0.4rem;">
+                    {{ att.get_added_by_display }}
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="meta" style="margin: 0;">No attachments linked to this assignment.</p>
+        {% endif %}
+    </div>
+
+    <!-- Personal Notes -->
+    <h2 style="margin-top: 1.5rem;">Personal Notes</h2>
+    <div style="border: 1px solid var(--border); background: var(--surface); padding: 1rem; margin-top: 0.5rem;">
+        {% if assignment.notes.all %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem;">
+            {% for note in assignment.notes.all %}
+            <div style="border-left: 3px solid var(--accent); padding-left: 0.75rem; background: var(--surface-subtle); padding: 0.5rem 0.75rem;">
+                <p style="margin: 0 0 0.25rem 0; font-size: 0.95rem; white-space: pre-wrap;">{{ note.body }}</p>
+                <span class="meta" style="font-size: 0.75rem;">{{ note.created_at|date:"M d, Y h:i A" }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="meta" style="margin-bottom: 0.75rem;">No personal notes yet.</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'assignments:add_note' assignment.pk %}" style="display: flex; flex-direction: column; gap: 0.5rem; margin: 0;">
+            {% csrf_token %}
+            <textarea name="body" rows="2" placeholder="Record private thoughts or questions..." required style="padding: 0.5rem; font-size: 0.9rem;"></textarea>
+            <button type="submit" class="btn-secondary" style="align-self: flex-start; padding: 0.45rem 0.8rem; font-size: 0.85rem;">+ Save Note</button>
+        </form>
+    </div>
+
+    <h2 style="margin-top: 1.5rem;">Update Status</h2>
+    <form method="post" action="{% url 'assignments:update_status' assignment.pk %}" style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem;">
+        {% csrf_token %}
+        <select name="status_code" style="padding: 0.5rem; font-size: 0.95rem; background: var(--surface); color: var(--foreground); border: 1px solid var(--border-strong);">
+            {% for st in statuses %}
+            <option value="{{ st.code }}" {% if st.code == assignment.status.code %}selected{% endif %}>{{ st.label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn-primary">Update Status</button>
+    </form>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; pt: 1rem; border-top: 1px solid var(--border);">
+        <a href="{% url 'assignments:list' %}" class="meta" style="text-decoration: none;">← Back to Assignments</a>
+        <form method="post" action="{% url 'assignments:delete' assignment.pk %}" onsubmit="return confirm('Are you sure you want to delete this assignment?');" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="btn-secondary" style="color: var(--danger); border-color: var(--danger); font-size: 0.85rem; padding: 0.4rem 0.8rem;">Delete Assignment</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

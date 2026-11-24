@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}AI Assistant — Teamly{% endblock %}
+
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/ai_assistant/assistant.css' %}">{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="assistant-heading">
+    <h1 id="assistant-heading">AI Assistant</h1>
+    <p class="meta">AI summaries are assistance only — always check the original instructions.</p>
+    {% if summaries %}
+    <ul>
+        {% for summary in summaries %}
+        <li>{{ summary.assignment.title }}: {{ summary.summary|truncatewords:30 }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="meta">No AI summaries yet.</p>
+    {% endif %}
+    <p class="meta"><a href="{% url 'home:home' %}">Back to Home</a></p>
+</section>
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/ai_assistant/assistant.js' %}"></script>{% endblock %}

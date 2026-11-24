@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Notifications — Teamly{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="notifications-heading">
+    <h1 id="notifications-heading">Notification Center</h1>
+    <p class="meta">Configure when and how Teamly alerts you about academic requirements.</p>
+
+    <!-- Notification Preferences Form -->
+    <h2>Notification Preferences</h2>
+    <form method="post" action="{% url 'notifications:notifications' %}" style="border: 1px solid var(--border); background: var(--surface); padding: 1rem; margin-top: 0.5rem; margin-bottom: 1.5rem;">
+        {% csrf_token %}
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer;">
+                <input type="checkbox" name="new_assignment" {% if preference.new_assignment %}checked{% endif %} style="width: 1.1rem; height: 1.1rem;">
+                <span>New assignments detected in Microsoft Teams</span>
+            </label>
+
+            <label style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer;">
+                <input type="checkbox" name="deadline_enabled" {% if preference.deadline_enabled %}checked{% endif %} style="width: 1.1rem; height: 1.1rem;">
+                <span>Upcoming assignment deadline alerts</span>
+            </label>
+
+            <div style="display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.25rem;">
+                <label for="id_lead_hours" style="font-size: 0.9rem;">Reminder Lead Time (Hours before due)</label>
+                <input type="number" id="id_lead_hours" name="lead_hours" value="{{ preference.lead_hours }}" min="1" max="168" required style="max-width: 8rem; padding: 0.45rem;">
+                <span class="meta" style="font-size: 0.8rem;">How many hours in advance to receive deadline alerts (e.g. 24 = 1 day, 48 = 2 days).</span>
+            </div>
+
+            <button type="submit" class="btn-primary" style="align-self: flex-start; margin-top: 0.5rem;">Save Preferences</button>
+        </div>
+    </form>
+
+    <!-- Upcoming Reminders -->
+    <h2>Upcoming Reminders</h2>
+    <div style="border: 1px solid var(--border); background: var(--surface); padding: 1rem; margin-top: 0.5rem; margin-bottom: 1.5rem;">
+        {% if reminders %}
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% for reminder in reminders %}
+            <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid var(--border);">
+                <div>
+                    <span style="font-weight: 600;">{{ reminder.assignment.title }}</span>
+                    <span class="meta" style="font-size: 0.8rem; display: block;">Channel: {{ reminder.get_channel_display }}</span>
+                </div>
+                <span class="meta" style="font-size: 0.85rem; font-weight: 600;">{{ reminder.remind_at|date:"M d, Y h:i A" }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="meta" style="margin: 0;">No pending reminders scheduled.</p>
+        {% endif %}
+    </div>
+
+    <!-- Notification Log History -->
+    <h2>Notification History</h2>
+    <div style="border: 1px solid var(--border); background: var(--surface); padding: 1rem; margin-top: 0.5rem;">
+        {% if logs %}
+        <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem;">
+            {% for log in logs %}
+            <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0; border-bottom: 1px solid var(--border);">
+                <span>{{ log.kind }}</span>
+                <span class="meta" style="font-size: 0.8rem;">{{ log.sent_at|date:"M d, Y h:i A" }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="meta" style="margin: 0;">No notifications have been dispatched yet.</p>
+        {% endif %}
+    </div>
+
+    <p class="meta" style="margin-top: 1.5rem;"><a href="{% url 'home:home' %}">← Back to Dashboard</a></p>
+</section>
+{% endblock %}

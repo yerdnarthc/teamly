@@ -1,0 +1,2 @@
+/* Sync slice: sync-specific presentation only. */
+#sync-heading + .meta { margin-bottom: 1rem; }

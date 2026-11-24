@@ -1,17 +1,128 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Home — Teamly{% endblock %}
+{% block title %}Dashboard — Teamly{% endblock %}
 
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/home/home.css' %}">{% endblock %}
-
-{% block content %}
-<section class="panel" aria-labelledby="home-heading">
-    <h1 id="home-heading">HOME SCREEN</h1>
-    <p>Welcome{% if user.is_authenticated %}, {{ user.username }}{% endif %}!</p>
-    <p class="meta">Your assignment overview will live here.</p>
-    <p class="meta"><a href="{% url 'profile:profile' %}">View profile</a> · <a href="{% url 'user_settings:settings' %}">Settings</a></p>
-</section>
+{% block extra_css %}
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 0.75rem;
+        margin: 1rem 0 1.5rem;
+    }
+    .stat-card {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        padding: 0.85rem;
+        display: flex;
+        flex-direction: column;
+    }
+    .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        line-height: 1.1;
+        margin-top: 0.25rem;
+    }
+    .stat-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--foreground-muted);
+        letter-spacing: 0.05em;
+    }
+    .stat-active .stat-number { color: var(--accent); }
+    .stat-overdue .stat-number { color: var(--danger); }
+    .stat-completed .stat-number { color: var(--success); }
+    .task-item {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        padding: 0.85rem;
+        margin-bottom: 0.6rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .task-meta {
+        font-size: 0.85rem;
+        color: var(--foreground-muted);
+    }
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.2rem 0.45rem;
+        text-transform: uppercase;
+    }
+    .badge-urgent { background: #FEE2E2; color: var(--danger); }
+    .badge-high { background: #FEF3C7; color: var(--warning); }
+</style>
 {% endblock %}
 
-{% block extra_js %}<script src="{% static 'js/home/home.js' %}"></script>{% endblock %}
+{% block content %}
+<section class="panel" aria-labelledby="dashboard-heading">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+            <h1 id="dashboard-heading" style="margin-bottom: 0.2rem;">Academic Dashboard</h1>
+            <p class="meta">Welcome back, {{ user.first_name|default:user.username }}!</p>
+        </div>
+        <a href="{% url 'assignments:create' %}" class="btn-primary" style="display: inline-block; padding: 0.4rem 0.8rem; text-decoration: none; font-size: 0.9rem;">+ New Assignment</a>
+    </div>
+
+    <!-- Workload Statistics (Scope 2.2) -->
+    <div class="stats-grid">
+        <div class="stat-card stat-active">
+            <span class="stat-label">Active Tasks</span>
+            <span class="stat-number">{{ active_count }}</span>
+        </div>
+        <div class="stat-card stat-overdue">
+            <span class="stat-label">Overdue</span>
+            <span class="stat-number">{{ overdue_count }}</span>
+        </div>
+        <div class="stat-card stat-completed">
+            <span class="stat-label">Completed</span>
+            <span class="stat-number">{{ completed_count }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Total Recorded</span>
+            <span class="stat-number">{{ total_count }}</span>
+        </div>
+    </div>
+
+    <!-- Upcoming Deadlines (Scope 2.3) -->
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: 1rem;">
+        <h2>Upcoming Deadlines</h2>
+        <a href="{% url 'assignments:list' %}" class="meta">View all →</a>
+    </div>
+
+    {% if upcoming_assignments %}
+    <div>
+        {% for a in upcoming_assignments %}
+        <div class="task-item">
+            <div>
+                <a href="{% url 'assignments:detail' a.pk %}" style="font-weight: 600; text-decoration: none; color: var(--foreground);">{{ a.title }}</a>
+                <div class="task-meta">
+                    {% if a.subject %}<span style="color: {{ a.subject.color|default:'var(--foreground)' }}; font-weight: 500;">{{ a.subject.name }}</span> · {% endif %}
+                    Due {{ a.due_at|date:"M d, Y h:i A" }}
+                </div>
+            </div>
+            {% if a.priority.code == "URGENT" %}
+            <span class="badge badge-urgent">URGENT</span>
+            {% elif a.priority.code == "HIGH" %}
+            <span class="badge badge-high">HIGH</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="meta">No upcoming deadlines approaching.</p>
+    {% endif %}
+
+    <!-- Quick Navigation Links -->
+    <div style="margin-top: 1.5rem; pt: 1rem; border-top: 1px solid var(--border); display: flex; gap: 1rem; flex-wrap: wrap;">
+        <a href="{% url 'assignments:list' %}" class="meta">All Assignments</a>
+        <a href="{% url 'profile:profile' %}" class="meta">Student Profile</a>
+        <a href="{% url 'user_settings:settings' %}" class="meta">Notification Settings</a>
+    </div>
+</section>
+{% endblock %}

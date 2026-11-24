@@ -33,7 +33,7 @@ SECRET_KEY = 'django-insecure-b&acvms*=n)^2*$daz)7ks8@*ot&nh6)&%ebo4b+)m3p7rq+df
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -45,12 +45,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third-party applications
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     # Vertical slices: one Django app per business capability.
     'apps.login',
     'apps.register',
     'apps.home',
     'apps.profile',
     'apps.user_settings',
+    'apps.accounts',
+    'apps.academic',
+    'apps.assignments',
+    'apps.ai_assistant',
+    'apps.sync',
+    'apps.notifications',
 ]
 
 MIDDLEWARE = [
@@ -76,6 +86,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.accounts.context_processors.theme_context',
             ],
         },
     },
@@ -160,3 +171,25 @@ LOGOUT_REDIRECT_URL = 'login:login'
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Django REST Framework & SimpleJWT Configuration
+from datetime import timedelta
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}

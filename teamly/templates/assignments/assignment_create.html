@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Assignment — Teamly{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="create-heading">
+    <h1 id="create-heading">New Assignment</h1>
+    <p class="meta">Record a manual academic assignment or coursework requirement.</p>
+
+    <form method="post" style="margin-top: 1rem;">
+        {% csrf_token %}
+        {% for field in form %}
+        <p>
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+            <span class="helptext">{{ field.help_text }}</span>
+            {% endif %}
+            {% if field.errors %}
+            <span class="errorlist">{{ field.errors }}</span>
+            {% endif %}
+        </p>
+        {% endfor %}
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+            <button type="submit" class="btn-primary">Save Assignment</button>
+            <a href="{% url 'assignments:list' %}" class="btn-secondary" style="display: inline-block; padding: 0.55rem 1rem; text-decoration: none;">Cancel</a>
+        </div>
+    </form>
+</section>
+{% endblock %}
