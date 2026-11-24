@@ -145,3 +145,43 @@ class AssignmentApiTests(TestCase):
                 assignment=self.assignment, title="Benchmark performance"
             ).exists()
         )
+
+    def test_list_upcoming_assignments(self):
+        # Create an assignment due tomorrow, one due next week, and a completed one
+        Assignment.objects.create(
+            user=self.user,
+            status=self.status_todo,
+            priority=self.priority_med,
+            title="Due Tomorrow Task",
+            due_at=timezone.now() + timedelta(days=1),
+        )
+        Assignment.objects.create(
+            user=self.user,
+            status=self.status_done,
+            priority=self.priority_med,
+            title="Completed Task (Should be excluded)",
+            due_at=timezone.now() + timedelta(days=1),
+        )
+        url = reverse("api_v1_assignments:assignment-list") + "?upcoming=true"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        titles = [a["title"] for a in response.data]
+        self.assertIn("Due Tomorrow Task", titles)
+        self.assertIn("Implement Sorting Algorithm", titles)
+        self.assertNotIn("Completed Task (Should be excluded)", titles)
+        # Verify chronological ordering
+        self.assertEqual(titles[0], "Due Tomorrow Task")
+        self.assertEqual(titles[1], "Implement Sorting Algorithm")
+
+    def test_get_workload_metrics(self):
+        url = reverse("api_v1_assignments:assignment-metrics")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("total_count", response.data)
+        self.assertIn("completed_count", response.data)
+        self.assertIn("active_count", response.data)
+        self.assertIn("overdue_count", response.data)
+        self.assertEqual(response.data["total_count"], 1)
+        self.assertEqual(response.data["active_count"], 1)
+        self.assertEqual(response.data["completed_count"], 0)
+

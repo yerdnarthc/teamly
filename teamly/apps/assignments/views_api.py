@@ -24,6 +24,12 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             .select_related("status", "priority", "subject")
             .prefetch_related("subtasks")
         )
+
+        # Upcoming deadlines filter: active tasks sorted chronologically by due date
+        upcoming = self.request.query_params.get("upcoming")
+        if upcoming == "true":
+            qs = qs.exclude(status__code="COMPLETED").filter(due_at__isnull=False).order_by("due_at")
+
         # Filtering support for mobile
         status_code = self.request.query_params.get("status")
         if status_code:
@@ -45,6 +51,23 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         elif self.action == "retrieve":
             return AssignmentDetailSerializer
         return AssignmentCreateUpdateSerializer
+
+    @action(detail=False, methods=["get"], url_path="metrics")
+    def metrics(self, request):
+        """
+        Consolidated workload metrics for student mobile dashboard:
+        total, active, completed, and overdue counts.
+        """
+        metrics = Assignment.objects.for_user(request.user).workload_metrics()
+        return Response(
+            {
+                "total_count": metrics["total_count"],
+                "completed_count": metrics["completed_count"],
+                "active_count": metrics["active_count"],
+                "overdue_count": metrics["overdue_count"],
+            },
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=True, methods=["post"], url_path="adopt-subtask")
     def adopt_subtask(self, request, pk=None):
