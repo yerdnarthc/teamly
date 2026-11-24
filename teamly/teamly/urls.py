@@ -23,6 +23,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # API v1 Endpoints (Headless Mobile Client)
     path("api/v1/auth/", include("apps.accounts.urls_api")),
+    path("api/v1/profile/", include("apps.profile.urls_api")),
+    path("api/v1/notifications/", include("apps.notifications.urls_api")),
     path("api/v1/assignments/", include("apps.assignments.urls_api")),
     path("api/v1/academic/", include("apps.academic.urls_api")),
     path("api/v1/sync/", include("apps.sync.urls_api")),
