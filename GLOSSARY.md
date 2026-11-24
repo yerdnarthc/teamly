@@ -84,6 +84,15 @@ _Avoid_: User settings, profile settings, options
 The visual presentation setting for Teamly supporting automated operating system detection (System) or explicit user override (Light, Dark).
 _Avoid_: Dark mode toggle, skin, styling
 
+**AI Task Suggestion**:
+An assistive, machine-generated recommendation for an assignment requirement or checklist step stored in AiSummary. It remains non-authoritative until adopted by the student.
+_Avoid_: Auto-task, generated todo, AI checklist
+
+**Subtask Adoption**:
+The explicit student action that converts an assistive AI task suggestion into an authoritative, student-owned Subtask record in the assignment workspace.
+_Avoid_: Importing task, saving suggestion, converting item
+
+
 
 
 

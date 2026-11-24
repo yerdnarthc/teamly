@@ -68,10 +68,20 @@ def assignment_detail_view(request, pk):
         user=request.user,
     )
     statuses = Status.objects.all()
+    try:
+        ai_summary = assignment.ai_summary
+    except Exception:
+        ai_summary = None
+    existing_subtask_titles = {s.title.strip() for s in assignment.subtasks.all()}
     return render(
         request,
         "assignments/assignment_detail.html",
-        {"assignment": assignment, "statuses": statuses},
+        {
+            "assignment": assignment,
+            "statuses": statuses,
+            "ai_summary": ai_summary,
+            "existing_subtask_titles": existing_subtask_titles,
+        },
     )
 
 

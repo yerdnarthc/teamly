@@ -12,6 +12,7 @@ class AiSummary(models.Model):
     summary = models.TextField()
     requirements = models.JSONField(null=True, blank=True)
     deadlines = models.JSONField(null=True, blank=True)
+    suggested_subtasks = models.JSONField(null=True, blank=True, default=list)
     model = models.CharField(max_length=40, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
