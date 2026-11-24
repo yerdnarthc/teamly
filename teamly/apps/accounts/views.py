@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
@@ -5,7 +6,8 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from .models import MicrosoftAccount
+from .forms import AccountPreferenceForm
+from .models import AccountPreference, MicrosoftAccount
 
 
 def login_view(request):
@@ -58,3 +60,34 @@ def accounts_view(request):
     """Displays Microsoft connected account details and status."""
     ms_account = MicrosoftAccount.objects.filter(user=request.user).first()
     return render(request, "accounts/accounts.html", {"ms_account": ms_account})
+
+
+@login_required
+def settings_view(request):
+    """
+    Consolidated Account Settings view.
+    Manages client theme preference (3-way: System, Light, Dark), displays connected Microsoft account,
+    and links to Profile and Notification preferences.
+    """
+    preference, _ = AccountPreference.objects.get_or_create(user=request.user)
+    ms_account = MicrosoftAccount.objects.filter(user=request.user).first()
+
+    if request.method == "POST":
+        form = AccountPreferenceForm(request.POST, instance=preference)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Account settings updated successfully.")
+            return redirect("accounts:settings")
+    else:
+        form = AccountPreferenceForm(instance=preference)
+
+    return render(
+        request,
+        "accounts/settings.html",
+        {
+            "form": form,
+            "preference": preference,
+            "ms_account": ms_account,
+        },
+    )
+

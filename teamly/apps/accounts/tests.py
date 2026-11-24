@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import MicrosoftAccount
+from .models import AccountPreference, MicrosoftAccount
 
 
 class AccountsAuthTests(TestCase):
@@ -79,6 +79,50 @@ class AccountsModelAndDashboardTests(TestCase):
         self.client.login(username="ms_user", password="pw")
         response = self.client.get(reverse("accounts:accounts"))
         self.assertEqual(response.status_code, 200)
+
+
+class AccountSettingsTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="settings_student", password="Testpass123!"
+        )
+
+    def test_anonymous_settings_redirects_to_login(self):
+        response = self.client.get(reverse("accounts:settings"))
+        self.assertRedirects(
+            response, reverse("login:login") + "?next=/accounts/settings/"
+        )
+
+    def test_backward_compatible_user_settings_route_redirects_anonymous(self):
+        response = self.client.get(reverse("user_settings:settings"))
+        self.assertRedirects(
+            response, reverse("login:login") + "?next=/settings/"
+        )
+
+    def test_settings_view_get_renders_3_way_theme_form(self):
+        self.client.login(username="settings_student", password="Testpass123!")
+        response = self.client.get(reverse("accounts:settings"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Visual Appearance")
+        self.assertContains(response, "Match System (Automatic)")
+        self.assertContains(response, "Light Mode")
+        self.assertContains(response, "Dark Mode")
+
+    def test_settings_view_post_updates_theme_mode(self):
+        self.client.login(username="settings_student", password="Testpass123!")
+        response = self.client.post(
+            reverse("accounts:settings"),
+            {"theme": AccountPreference.ThemeMode.DARK},
+        )
+        self.assertRedirects(response, reverse("accounts:settings"))
+        pref = AccountPreference.objects.get(user=self.user)
+        self.assertEqual(pref.theme, AccountPreference.ThemeMode.DARK)
+
+        # Context processor verifies data-theme is dark
+        res_after = self.client.get(reverse("accounts:settings"))
+        self.assertEqual(res_after.context["user_theme"], "dark")
+        self.assertContains(res_after, 'data-theme="dark"')
+
 
 
 

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Account Settings — Teamly{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    .settings-section {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        padding: 1.25rem;
+    }
+    .theme-radio-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin: 1rem 0;
+    }
+    .theme-option {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.6rem 0.85rem;
+        border: 1px solid var(--border);
+        background: var(--surface-subtle);
+        cursor: pointer;
+    }
+    .theme-option:hover {
+        border-color: var(--foreground-muted);
+    }
+    .theme-option input[type="radio"] {
+        margin: 0;
+        cursor: pointer;
+    }
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9rem;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    .shortcut-links {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    .messages-box {
+        background: #DCFCE7;
+        color: #166534;
+        border: 1px solid #BBF7D0;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="panel" aria-labelledby="settings-heading">
+    <div style="margin-bottom: 1.5rem;">
+        <h1 id="settings-heading" style="margin: 0 0 0.25rem;">Account &amp; Visual Settings</h1>
+        <p class="meta" style="margin: 0;">Manage your appearance, connected Microsoft 365 identity, and workspace preferences.</p>
+    </div>
+
+    {% if messages %}
+    <div class="messages-box">
+        {% for message in messages %}
+            <div>{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="settings-grid">
+        <!-- 1. Visual Appearance Theme Mode -->
+        <div class="settings-section">
+            <h2 style="margin-top: 0; font-size: 1.15rem;">Visual Appearance</h2>
+            <p class="meta" style="margin-bottom: 0.75rem;">Select your preferred interface theme. Current: <strong>{{ preference.get_theme_display }}</strong></p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="theme-radio-group">
+                    {% for radio in form.theme %}
+                    <label class="theme-option">
+                        {{ radio.tag }}
+                        <span style="font-weight: 600; font-size: 0.95rem;">{{ radio.choice_label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn-primary">Save Appearance Preference</button>
+            </form>
+        </div>
+
+        <!-- 2. Account Credentials & Status -->
+        <div class="settings-section">
+            <h2 style="margin-top: 0; font-size: 1.15rem;">Student Account Identity</h2>
+            <div class="info-row">
+                <span class="meta">Username</span>
+                <strong>{{ user.username }}</strong>
+            </div>
+            <div class="info-row">
+                <span class="meta">Email Address</span>
+                <span>{{ user.email|default:"Not specified" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="meta">Account Created</span>
+                <span class="meta">{{ user.date_joined|date:"M d, Y" }}</span>
+            </div>
+        </div>
+
+        <!-- 3. Connected Microsoft 365 Account -->
+        <div class="settings-section">
+            <h2 style="margin-top: 0; font-size: 1.15rem;">Microsoft Teams Education Connection</h2>
+            {% if ms_account %}
+                <div class="info-row">
+                    <span class="meta">Connection Status</span>
+                    <span style="color: var(--success); font-weight: 600;">● Connected</span>
+                </div>
+                <div class="info-row">
+                    <span class="meta">Teams User ID</span>
+                    <code>{{ ms_account.teams_user_id }}</code>
+                </div>
+                <div class="info-row">
+                    <span class="meta">Tenant ID</span>
+                    <code>{{ ms_account.tenant_id }}</code>
+                </div>
+                <div class="info-row">
+                    <span class="meta">Connected Since</span>
+                    <span class="meta">{{ ms_account.connected_at|date:"M d, Y h:i A" }}</span>
+                </div>
+            {% else %}
+                <p class="meta">No Microsoft Education account linked yet. In Stage 2, you can connect your school account via Microsoft Graph OAuth.</p>
+            {% endif %}
+        </div>
+
+        <!-- 4. Quick Shortcuts -->
+        <div class="settings-section">
+            <h2 style="margin-top: 0; font-size: 1.15rem;">Related Preferences</h2>
+            <p class="meta">Adjust other student workspace settings across the platform:</p>
+            <div class="shortcut-links">
+                <a href="{% url 'notifications:notifications' %}" class="btn-secondary" style="text-decoration: none; display: inline-block;">⚙ Notification Preferences</a>
+                <a href="{% url 'profile:profile' %}" class="btn-secondary" style="text-decoration: none; display: inline-block;">👤 Student Academic Profile</a>
+                <a href="{% url 'sync:sync' %}" class="btn-secondary" style="text-decoration: none; display: inline-block;">⟳ Synchronization Status</a>
+            </div>
+        </div>
+    </div>
+
+    <p class="meta" style="margin-top: 2rem;">
+        <a href="{% url 'home:home' %}">&larr; Back to Dashboard</a>
+    </p>
+</section>
+{% endblock %}

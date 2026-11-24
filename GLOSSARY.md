@@ -64,5 +64,26 @@ _Avoid_: Notification setting, alert rule
 A scheduled alert event configured for an assignment approaching its deadline, calculated from the student's preferred lead time.
 _Avoid_: Alert, ping, notification item
 
+**Assignment Ingestion**:
+The atomic backend process of receiving external assignment payloads for a subject, reconciling differences against existing records without overwriting Teamly-managed student data, updating sync cursors, and recording synchronization runs.
+_Avoid_: Syncing, pulling, scraping, importing
+
+**Sync Cursor**:
+A persistent tracking record maintaining the latest successful synchronization timestamp, error state, and delta token for an academic subject.
+_Avoid_: Bookmark, sync state, checkpoint
+
+**Sync Report**:
+A structured, immutable summary of an assignment ingestion run containing counts of created, updated, unchanged, and unlinked assignments along with emitted events and errors.
+_Avoid_: Sync result dict, sync output
+
+**Account Preference**:
+Student-managed client settings controlling visual appearance and client behavior, consolidated within the user account domain.
+_Avoid_: User settings, profile settings, options
+
+**Theme Mode**:
+The visual presentation setting for Teamly supporting automated operating system detection (System) or explicit user override (Light, Dark).
+_Avoid_: Dark mode toggle, skin, styling
+
+
 
 
