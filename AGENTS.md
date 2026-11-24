@@ -25,10 +25,12 @@ No lint/formatter/typecheck/CI/pre-commit configured.
 
 ## Architecture — what to build now vs later
 
-- **Current scope = Prelim: Django web foundation only.** Per `docs/PROJECT_CONTEXT.md`, the required slice is exactly `Login → Register → Login → Home` (three screens + routing/views/templates/auth). Prioritize correct Django structure, not the full assignment pipeline.
-- **Do NOT prematurely implement** Microsoft Graph / Teams sync, AI summarization, notifications, or React Native. Those are Stage 2 (`React Native → Django REST API → DB → Graph → AI`). Current stage is Stage 1: `Browser → Django URLs → Views → Templates → DB`.
-- **Extensibility constraint:** Keep auth/data model clean so later stages can add Graph/AI without rewrite. Distinguish external source data (Graph assignments) from Teamly-managed data (status, priority, notes, AI summaries) — don't overwrite user-managed fields on sync.
-- **Prelim screens:** all five slices exist — `login` (`apps/login/views.py`: `login_view` + POST-only `logout_view`), `register` (`apps/register/views.py`: `UserCreationForm` → redirect login), `home` (`apps/home/views.py`: `@login_required`), `profile` (`Profile` model + form/view), `user_settings` (`UserSettings` model + form/view). Shared layout is project-level `templates/base.html` (`{% block title %}`/`content`/`extra_css`/`extra_js`); `settings.py` sets `DIRS=[BASE_DIR/'templates']` + `STATICFILES_DIRS=[BASE_DIR/'static']`.
+- **Production Tech Stack Specification:** See `docs/TECH_STACK.md` and `docs/adr/0008-standardize-production-tech-stack.md` for the authoritative production tech stack (React Native Expo, NativeWind v4, TanStack Query, DRF SimpleJWT, Celery + Redis, Supabase Postgres, Google Gemini).
+- **Current scope = Stage 1 (Django Web Foundation) & Stage 2 Transition (Headless DRF API & Expo Mobile).**
+- **Coexisting Hybrid Model:** Deep domain service modules (`apps.assignments`, `apps.sync`, `apps.accounts`, `apps.ai_assistant`, `apps.notifications`) serve both Django template views and DRF REST endpoints (`/api/v1/`). Never place business logic directly in serializers or views.
+- **Extensibility constraint:** Keep auth/data model clean. Distinguish external source data (Graph assignments) from Teamly-managed data (status, priority, notes, subtasks, AI summaries) — never overwrite student-managed fields on sync.
+- **Async & Heavy Operations:** External sync (Microsoft Graph) and LLM summarization (Gemini) must run via Celery workers with Redis, keeping API response times snappy.
+- **Prelim screens:** all five slices exist — `login`, `register`, `home`, `profile`, `accounts` (preferences). Shared layout is project-level `templates/base.html`.
 
 ## Gotchas
 
@@ -40,6 +42,20 @@ No lint/formatter/typecheck/CI/pre-commit configured.
 ## Skills
 
 Declared in `skills-lock.json` (root): `django-expert` (`vintasoftware/django-ai-plugins`), `django-patterns` (`affaan-m/ecc`) — installed under `.agents/skills/`. Use them for Django idioms.
+
+## Agent skills
+
+### Issue tracker
+
+Local markdown files in `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Canonical roles mapped 1:1 (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context (`GLOSSARY.md` + `docs/adr/` at the root). See `docs/agents/domain.md`.
 
 ## Instruction sources
 
