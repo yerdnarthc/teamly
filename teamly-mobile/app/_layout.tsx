@@ -4,6 +4,7 @@ import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { useColorScheme } from "nativewind";
 import { useAuthStore } from "../src/stores/authStore";
 import { useThemeStore } from "../src/stores/themeStore";
 
@@ -18,12 +19,24 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const theme = useThemeStore((state) => state.theme);
   const loadTheme = useThemeStore((state) => state.loadTheme);
+  const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
     checkAuth();
     loadTheme();
   }, []);
+
+  useEffect(() => {
+    if (theme === "SYSTEM") {
+      setColorScheme("system");
+    } else if (theme === "DARK") {
+      setColorScheme("dark");
+    } else if (theme === "LIGHT") {
+      setColorScheme("light");
+    }
+  }, [theme]);
 
   return (
     <SafeAreaProvider>

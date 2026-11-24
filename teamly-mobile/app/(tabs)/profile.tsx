@@ -2,7 +2,8 @@ import React, { useEffect } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { User, LogOut, Moon, Sun, Smartphone, Shield, Sparkles } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
+import { User, LogOut, Moon, Sun, Smartphone, Shield } from "lucide-react-native";
 import { useAuthStore } from "../../src/stores/authStore";
 import { useThemeStore, ThemeMode } from "../../src/stores/themeStore";
 
@@ -10,6 +11,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const { theme, setTheme, loadTheme } = useThemeStore();
+  const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
     loadTheme();
@@ -20,22 +22,33 @@ export default function ProfileScreen() {
     router.replace("/");
   };
 
-  const themeOptions: Array<{ mode: ThemeMode; label: string; icon: React.ReactNode }> = [
-    {
-      mode: "SYSTEM",
-      label: "System",
-      icon: <Smartphone size={16} color={theme === "SYSTEM" ? "#ffffff" : "#64748b"} />,
-    },
-    {
-      mode: "LIGHT",
-      label: "Light",
-      icon: <Sun size={16} color={theme === "LIGHT" ? "#ffffff" : "#64748b"} />,
-    },
-    {
-      mode: "DARK",
-      label: "Dark",
-      icon: <Moon size={16} color={theme === "DARK" ? "#ffffff" : "#64748b"} />,
-    },
+  const handleSelectTheme = async (mode: ThemeMode) => {
+    // Synchronize both NativeWind hook and store
+    if (mode === "SYSTEM") {
+      setColorScheme("system");
+    } else if (mode === "DARK") {
+      setColorScheme("dark");
+    } else {
+      setColorScheme("light");
+    }
+    await setTheme(mode);
+  };
+
+  const renderIcon = (mode: ThemeMode, isActive: boolean) => {
+    const iconColor = isActive ? "#ffffff" : "#64748b";
+    if (mode === "SYSTEM") {
+      return <Smartphone size={16} color={iconColor} />;
+    }
+    if (mode === "LIGHT") {
+      return <Sun size={16} color={iconColor} />;
+    }
+    return <Moon size={16} color={iconColor} />;
+  };
+
+  const modes: Array<{ mode: ThemeMode; label: string }> = [
+    { mode: "SYSTEM", label: "System" },
+    { mode: "LIGHT", label: "Light" },
+    { mode: "DARK", label: "Dark" },
   ];
 
   return (
@@ -64,17 +77,17 @@ export default function ProfileScreen() {
           </Text>
 
           <View className="flex-row bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl">
-            {themeOptions.map((opt) => {
+            {modes.map((opt) => {
               const isActive = theme === opt.mode;
               return (
                 <TouchableOpacity
                   key={opt.mode}
-                  onPress={() => setTheme(opt.mode)}
+                  onPress={() => handleSelectTheme(opt.mode)}
                   className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center ${
                     isActive ? "bg-brand-600 shadow-sm" : ""
                   }`}
                 >
-                  {opt.icon}
+                  {renderIcon(opt.mode, isActive)}
                   <Text
                     className={`ml-1.5 text-xs font-semibold ${
                       isActive ? "text-white" : "text-slate-600 dark:text-slate-400"
