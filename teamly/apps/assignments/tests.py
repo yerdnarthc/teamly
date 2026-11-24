@@ -266,5 +266,50 @@ class AssignmentQuerySetTests(TestCase):
         self.assertEqual(len(metrics["recent_assignments"]), 3)
 
 
+class SQLShowcaseTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="sql_user", password="Testpass123!")
+        self.status = Status.objects.create(code="NOT_STARTED", label="Not Started")
+        self.priority = Priority.objects.create(code="HIGH", rank=3)
+
+    def test_sql_showcase_anonymous_redirects(self):
+        response = self.client.get(reverse("assignments:sql_showcase"))
+        self.assertRedirects(response, reverse("login:login") + "?next=/assignments/sql-showcase/")
+
+    def test_sql_showcase_authenticated_renders_join_and_subquery(self):
+        self.client.login(username="sql_user", password="Testpass123!")
+        asg1 = Assignment.objects.create(
+            user=self.user,
+            status=self.status,
+            priority=self.priority,
+            title="Assignment with Pending Subtask",
+        )
+        Subtask.objects.create(assignment=asg1, title="Subtask 1", is_done=False)
+
+        asg2 = Assignment.objects.create(
+            user=self.user,
+            status=self.status,
+            priority=self.priority,
+            title="Assignment without Subtasks",
+        )
+
+        response = self.client.get(reverse("assignments:sql_showcase"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "assignments/sql_showcase.html")
+
+        joined = response.context["joined_assignments"]
+        self.assertIn(asg1, joined)
+        self.assertIn(asg2, joined)
+
+        subqueried = response.context["subquery_assignments"]
+        self.assertIn(asg1, subqueried)
+        self.assertNotIn(asg2, subqueried)
+
+        self.assertIn("JOIN", response.context["join_sql"])
+        self.assertIn("subtask", response.context["subquery_sql"])
+
+
+
+
 
 

@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}SQL Showcase — Teamly{% endblock %}
+
+{% block extra_css %}
+<style>
+    .showcase-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+    .showcase-header {
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 1rem;
+    }
+    .showcase-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 1.5rem;
+    }
+    .section-title {
+        margin-top: 0;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .badge-tag {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.2rem 0.5rem;
+        background: var(--accent);
+        color: var(--accent-foreground);
+        letter-spacing: 0.05em;
+    }
+    .info-box {
+        background: var(--surface-subtle);
+        border-left: 3px solid var(--accent);
+        padding: 0.75rem 1rem;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+    }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        font-size: 0.9rem;
+    }
+    .data-table th, .data-table td {
+        border: 1px solid var(--border);
+        padding: 0.6rem 0.75rem;
+        text-align: left;
+    }
+    .data-table th {
+        background: var(--surface-subtle);
+        font-weight: 600;
+    }
+    .sql-block {
+        background: #0d1117;
+        color: #58a6ff;
+        padding: 1rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        margin-top: 0.5rem;
+        white-space: pre-wrap;
+        word-break: break-all;
+    }
+    .sql-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--foreground-muted);
+        letter-spacing: 0.05em;
+        margin-top: 1rem;
+        display: block;
+    }
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.2rem 0.45rem;
+        text-transform: uppercase;
+    }
+    .badge-status-NOT_STARTED { background: var(--surface-subtle); color: var(--foreground-muted); border: 1px solid var(--border); }
+    .badge-status-IN_PROGRESS { background: #E0E7FF; color: #3730A3; border: 1px solid #C7D2FE; }
+    .badge-status-COMPLETED { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+    .badge-prio-URGENT { background: #FEE2E2; color: var(--danger); border: 1px solid #FECACA; }
+    .badge-prio-HIGH { background: #FEF3C7; color: var(--warning); border: 1px solid #FDE68A; }
+    .badge-prio-MEDIUM { background: var(--surface-subtle); color: var(--foreground); border: 1px solid var(--border); }
+    .badge-prio-LOW { background: var(--surface-subtle); color: var(--foreground-muted); border: 1px solid var(--border); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="showcase-container">
+
+    <!-- Header -->
+    <header class="showcase-header">
+        <h1 style="margin: 0 0 0.5rem;">Guided Implementation: SQL JOINs & Subqueries</h1>
+        <p class="meta" style="margin: 0;">
+            <strong>Technology:</strong> Python Django 6.1 + Supabase PostgreSQL |
+            <strong>System:</strong> Teamly Assignment Assistant
+        </p>
+    </header>
+
+    <!-- Part 1: JOIN Implementation -->
+    <section class="showcase-card" id="part-1-join">
+        <h2 class="section-title">
+            <span class="badge-tag">PART 1</span>
+            SQL JOIN Implementation
+        </h2>
+
+        <div class="info-box">
+            <p style="margin: 0 0 0.4rem;"><strong>Business Purpose:</strong> Retrieve assignments along with their linked academic course (<code>subject</code>) and lifecycle state (<code>status</code>) in a single database query, eliminating N+1 overhead.</p>
+            <p style="margin: 0;"><strong>Tables Involved:</strong> <code>assignment</code> (Main), <code>subject</code> (Related via <code>subject_id</code>), <code>status</code> (Related via <code>status_id</code>), <code>priority</code> (Related via <code>priority_id</code>).</p>
+        </div>
+
+        <h3 style="font-size: 1rem; margin-top: 1.25rem;">1.1 Retrieved Records from Supabase (Live Results)</h3>
+        {% if joined_assignments %}
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Assignment Title</th>
+                        <th>Subject / Course</th>
+                        <th>Status</th>
+                        <th>Priority</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in joined_assignments %}
+                    <tr>
+                        <td><strong>#{{ a.id }}</strong></td>
+                        <td>{{ a.title }}</td>
+                        <td>
+                            {% if a.subject %}
+                                <span style="font-weight: 600; color: {{ a.subject.color|default:'inherit' }};">{{ a.subject.name }}</span>
+                            {% else %}
+                                <span class="meta">General</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge badge-status-{{ a.status.code }}">{{ a.status.label }}</span></td>
+                        <td><span class="badge badge-prio-{{ a.priority.code }}">{{ a.priority.code }}</span></td>
+                        <td class="meta">{{ a.due_at|date:"M d, Y h:i A"|default:"None" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="meta">No assignment records found in Supabase.</p>
+        {% endif %}
+
+        <h3 style="font-size: 1rem; margin-top: 1.5rem;">1.2 Django ORM Code</h3>
+        <pre class="sql-block" style="color: #e6edf3; background: #161b22;"><code>assignments = (
+    Assignment.objects.filter(user=request.user)
+    .select_related("subject", "status", "priority")
+    .order_by("due_at")
+)</code></pre>
+
+        <span class="sql-label">Generated PostgreSQL JOIN Query (Inspected via .query):</span>
+        <pre class="sql-block"><code>{{ join_sql }}</code></pre>
+    </section>
+
+    <!-- Part 2: SUBQUERY Implementation -->
+    <section class="showcase-card" id="part-2-subquery">
+        <h2 class="section-title">
+            <span class="badge-tag">PART 2</span>
+            SQL SUBQUERY Implementation
+        </h2>
+
+        <div class="info-box">
+            <p style="margin: 0 0 0.4rem;"><strong>Business Purpose:</strong> Filter and highlight only assignments that have <strong>uncompleted checklist subtasks</strong> (<code>subtask.is_done = False</code>), helping students prioritize pending work.</p>
+            <p style="margin: 0 0 0.4rem;"><strong>Inner Query:</strong> <code>SELECT subtask.assignment_id FROM subtask WHERE subtask.is_done = FALSE</code></p>
+            <p style="margin: 0;"><strong>Outer Query:</strong> <code>SELECT * FROM assignment WHERE assignment.id IN (&lt;inner_query&gt;)</code></p>
+        </div>
+
+        <h3 style="font-size: 1rem; margin-top: 1.25rem;">2.1 Assignments Satisfying the Subquery Condition</h3>
+        {% if subquery_assignments %}
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Assignment Title</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Pending Subtasks</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in subquery_assignments %}
+                    <tr>
+                        <td><strong>#{{ a.id }}</strong></td>
+                        <td>{{ a.title }}</td>
+                        <td>{{ a.subject.name|default:"General" }}</td>
+                        <td><span class="badge badge-status-{{ a.status.code }}">{{ a.status.label }}</span></td>
+                        <td>
+                            <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.85rem;">
+                                {% for st in a.subtasks.all %}
+                                    {% if not st.is_done %}
+                                    <li>{{ st.title }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td class="meta">{{ a.due_at|date:"M d, Y h:i A"|default:"None" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="meta">No assignments with pending subtasks found.</p>
+        {% endif %}
+
+        <h3 style="font-size: 1rem; margin-top: 1.5rem;">2.2 Django ORM Code</h3>
+        <pre class="sql-block" style="color: #e6edf3; background: #161b22;"><code># 1. Inner query: retrieve assignment IDs with unfinished subtasks
+pending_subtasks = Subtask.objects.filter(is_done=False).values("assignment_id")
+
+# 2. Outer query: filter assignments whose primary key is within the subquery
+assignments = (
+    Assignment.objects.filter(
+        id__in=Subquery(pending_subtasks),
+        user=request.user,
+    )
+    .select_related("subject", "status", "priority")
+    .order_by("due_at")
+)</code></pre>
+
+        <span class="sql-label">Generated PostgreSQL SUBQUERY (Inspected via .query):</span>
+        <pre class="sql-block"><code>{{ subquery_sql }}</code></pre>
+    </section>
+
+    <p class="meta" style="margin-top: 0.5rem;">
+        <a href="{% url 'assignments:list' %}">← Back to Assignments List</a> |
+        <a href="{% url 'home:home' %}">Dashboard</a>
+    </p>
+
+</div>
+{% endblock %}

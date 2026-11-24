@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, Subquery
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -128,3 +128,55 @@ def assignment_delete_view(request, pk):
     assignment = get_object_or_404(Assignment, pk=pk, user=request.user)
     assignment.delete()
     return redirect("assignments:list")
+
+
+@login_required
+def sql_showcase_view(request):
+    """
+    Demonstrates SQL JOIN and SQL SUBQUERY operations using Django ORM and Supabase PostgreSQL.
+    Part 1: JOIN retrieving assignments together with related subject, status, and priority.
+    Part 2: SUBQUERY filtering assignments that have unfinished checklist subtasks (is_done=False).
+    """
+    # 1. SQL JOIN Implementation
+    # Combines assignment records with related subject and status records via ForeignKeys.
+    joined_assignments = (
+        Assignment.objects.filter(user=request.user)
+        .select_related("subject", "status", "priority")
+        .order_by("due_at")
+    )
+    join_sql = str(joined_assignments.query)
+
+    # 2. SQL SUBQUERY Implementation
+    # Inner Query: Select assignment IDs that have uncompleted subtasks (is_done=False)
+    pending_subtasks = Subtask.objects.filter(is_done=False).values("assignment_id")
+
+    # Outer Query: Select assignments belonging to the student where ID is in the inner subquery
+    subquery_assignments = (
+        Assignment.objects.filter(
+            id__in=Subquery(pending_subtasks),
+            user=request.user,
+        )
+        .select_related("subject", "status", "priority")
+        .order_by("due_at")
+    )
+    subquery_sql = str(subquery_assignments.query)
+
+    # Print queries to console for terminal inspection during demo
+    print("\n" + "=" * 60)
+    print("[SQL DEMO] 1. GENERATED JOIN SQL:")
+    print(join_sql)
+    print("\n[SQL DEMO] 2. GENERATED SUBQUERY SQL:")
+    print(subquery_sql)
+    print("=" * 60 + "\n")
+
+    return render(
+        request,
+        "assignments/sql_showcase.html",
+        {
+            "joined_assignments": joined_assignments,
+            "join_sql": join_sql,
+            "subquery_assignments": subquery_assignments,
+            "subquery_sql": subquery_sql,
+        },
+    )
+
