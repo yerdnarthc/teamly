@@ -75,3 +75,19 @@ class JwtAuthApiTests(TestCase):
         self.assertTrue(User.objects.filter(username="new_mobile_student").exists())
         self.assertIn("access", response.data)
         self.assertIn("refresh", response.data)
+
+    def test_get_account_preferences_default_system(self):
+        url = reverse("api_v1_auth:preferences")
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["theme"], "SYSTEM")
+
+    def test_update_account_preferences_to_dark_mode(self):
+        url = reverse("api_v1_auth:preferences")
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(url, {"theme": "DARK"}, format="json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["theme"], "DARK")
+        self.user.account_preference.refresh_from_db()
+        self.assertEqual(self.user.account_preference.theme, "DARK")

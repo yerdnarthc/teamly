@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .views_api import ApiRegisterView
+from .views_api import ApiAccountPreferenceView, ApiRegisterView
 
 app_name = "api_v1_auth"
 
@@ -14,4 +14,5 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("token/blacklist/", TokenBlacklistView.as_view(), name="token_blacklist"),
     path("register/", ApiRegisterView.as_view(), name="register"),
+    path("preferences/", ApiAccountPreferenceView.as_view(), name="preferences"),
 ]

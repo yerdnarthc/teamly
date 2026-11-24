@@ -6,7 +6,17 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .serializers import RegisterSerializer
+from .models import AccountPreference
+from .serializers import AccountPreferenceSerializer, RegisterSerializer
+
+
+class ApiAccountPreferenceView(generics.RetrieveUpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = AccountPreferenceSerializer
+
+    def get_object(self):
+        pref, _ = AccountPreference.objects.get_or_create(user=self.request.user)
+        return pref
 
 
 class ApiRegisterView(generics.CreateAPIView):

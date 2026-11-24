@@ -2,6 +2,21 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .models import AccountPreference
+
+
+class AccountPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccountPreference
+        fields = ("theme",)
+
+    def validate_theme(self, value):
+        if value not in AccountPreference.ThemeMode.values:
+            raise serializers.ValidationError(
+                f"Invalid theme mode. Choose from {AccountPreference.ThemeMode.values}"
+            )
+        return value
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
