@@ -19,6 +19,7 @@ import {
   ArrowLeft,
 } from "lucide-react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColorScheme } from "nativewind";
 import { apiClient } from "../../src/services/apiClient";
 
 interface Subtask {
@@ -52,6 +53,8 @@ export default function AssignmentDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
   const [adoptingTitle, setAdoptingTitle] = useState<string | null>(null);
 
   const {
@@ -132,7 +135,7 @@ export default function AssignmentDetailScreen() {
             onPress={() => router.back()}
             className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 justify-center items-center shadow-sm border border-slate-200 dark:border-slate-700"
           >
-            <ArrowLeft size={18} color="#0f172a" />
+            <ArrowLeft size={18} color={isDark ? "#f8fafc" : "#0f172a"} />
           </TouchableOpacity>
         </View>
 
@@ -151,8 +154,8 @@ export default function AssignmentDetailScreen() {
               </Text>
             </View>
           )}
-          <View className="bg-blue-50 px-3 py-1 rounded-full">
-            <Text className="text-xs font-semibold text-blue-700">
+          <View className="bg-blue-50 dark:bg-blue-950/60 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-800">
+            <Text className="text-xs font-semibold text-blue-700 dark:text-blue-300">
               {assignment.status.label}
             </Text>
           </View>
@@ -247,8 +250,8 @@ export default function AssignmentDetailScreen() {
                 </Text>
 
                 {isAlreadyAdopted ? (
-                  <View className="bg-green-100 px-2.5 py-1 rounded-full">
-                    <Text className="text-xs font-semibold text-green-700">✓ In Checklist</Text>
+                  <View className="bg-green-100 dark:bg-green-950/60 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-800">
+                    <Text className="text-xs font-semibold text-green-700 dark:text-green-300">✓ In Checklist</Text>
                   </View>
                 ) : (
                   <TouchableOpacity

@@ -162,7 +162,7 @@ export default function ProfileScreen() {
       : profile?.username || user?.username || "Student User";
 
   return (
-    <SafeAreaView edges={["top", "bottom", "left", "right"]} className="flex-1 bg-slate-50 dark:bg-slate-900">
+    <SafeAreaView edges={["left", "right"]} className="flex-1 bg-slate-50 dark:bg-slate-900">
       <ScrollView
         className="flex-1 px-5 pt-3"
         showsVerticalScrollIndicator={false}

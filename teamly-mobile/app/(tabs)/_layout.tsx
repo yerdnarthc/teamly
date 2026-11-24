@@ -2,9 +2,15 @@ import React from "react";
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CheckSquare, Calendar, User } from "lucide-react-native";
+import { useColorScheme } from "nativewind";
+import { useThemeStore } from "../../src/stores/themeStore";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { colorScheme } = useColorScheme();
+  const theme = useThemeStore((state) => state.theme);
+  const isDark = colorScheme === "dark" || theme === "DARK";
+
   // Ensure comfortable bottom padding on devices with home gestures / physical navigation bar
   const bottomPadding = Math.max(insets.bottom, 12);
   const tabHeight = 56 + bottomPadding;
@@ -14,27 +20,28 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: true,
         headerStyle: {
-          backgroundColor: "#ffffff",
+          backgroundColor: isDark ? "#0f172a" : "#ffffff",
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 1,
-          borderBottomColor: "#f1f5f9",
+          borderBottomColor: isDark ? "#1e293b" : "#f1f5f9",
         },
         headerTitleStyle: {
           fontWeight: "700",
           fontSize: 18,
-          color: "#0f172a",
+          color: isDark ? "#f8fafc" : "#0f172a",
         },
-        tabBarActiveTintColor: "#2563eb",
-        tabBarInactiveTintColor: "#64748b",
+        headerTintColor: isDark ? "#f8fafc" : "#0f172a",
+        tabBarActiveTintColor: isDark ? "#3b82f6" : "#2563eb",
+        tabBarInactiveTintColor: isDark ? "#94a3b8" : "#64748b",
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: "600",
           marginBottom: 4,
         },
         tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopColor: "#e2e8f0",
+          backgroundColor: isDark ? "#0f172a" : "#ffffff",
+          borderTopColor: isDark ? "#1e293b" : "#e2e8f0",
           borderTopWidth: 1,
           height: tabHeight,
           paddingTop: 8,
