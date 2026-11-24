@@ -101,6 +101,17 @@ export default function RootLayout() {
                 headerTintColor: isDark ? "#f8fafc" : "#0f172a",
               }}
             />
+            <Stack.Screen
+              name="register"
+              options={{
+                title: "Create Account",
+                headerShown: true,
+                headerStyle: {
+                  backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                },
+                headerTintColor: isDark ? "#f8fafc" : "#0f172a",
+              }}
+            />
           </Stack>
         </ThemeProvider>
       </QueryClientProvider>

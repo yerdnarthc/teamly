@@ -69,6 +69,15 @@ export default function HomeScreen() {
                 <Text className="text-white font-semibold text-lg">Sign In</Text>
               </TouchableOpacity>
 
+              <TouchableOpacity
+                onPress={() => router.push("/register")}
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-3.5 rounded-2xl items-center mb-3 shadow-sm"
+              >
+                <Text className="text-slate-800 dark:text-slate-100 font-semibold text-base">
+                  Create Student Account
+                </Text>
+              </TouchableOpacity>
+
               <View className="flex-row justify-center items-center mt-4">
                 <BookOpen size={16} color="#64748b" />
                 <Text className="text-sm text-slate-500 dark:text-slate-400 ml-1.5">

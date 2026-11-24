@@ -70,6 +70,17 @@ export default function LoginScreen() {
             <Text className="text-white font-semibold text-base">Sign In with JWT</Text>
           )}
         </TouchableOpacity>
+
+        <View className="flex-row justify-center items-center mt-6">
+          <Text className="text-sm text-slate-500 dark:text-slate-400">
+            Don't have an account?{" "}
+          </Text>
+          <TouchableOpacity onPress={() => router.replace("/register")}>
+            <Text className="text-sm font-bold text-brand-600 dark:text-brand-400">
+              Create one
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
