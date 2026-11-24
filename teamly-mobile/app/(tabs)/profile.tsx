@@ -132,9 +132,26 @@ export default function ProfileScreen() {
     },
   });
 
-  const handleLogout = async () => {
-    await logout();
-    router.replace("/");
+  const handleLogout = () => {
+    Alert.alert(
+      "Log Out",
+      "Are you sure you want to log out of your student account?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await logout();
+            } finally {
+              queryClient.clear();
+              router.replace("/login");
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleSelectTheme = (mode: ThemeMode) => {

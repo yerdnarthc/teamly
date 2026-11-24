@@ -1,12 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { BookOpen, Sparkles, CheckCircle2 } from "lucide-react-native";
 import { useAuthStore } from "../src/stores/authStore";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { isAuthenticated, logout } = useAuthStore();
   const insets = useSafeAreaInsets();
 
@@ -54,7 +56,10 @@ export default function HomeScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => logout()}
+                onPress={() => {
+                  logout();
+                  queryClient.clear();
+                }}
                 className="w-full bg-slate-200 dark:bg-slate-800 py-3.5 rounded-2xl items-center"
               >
                 <Text className="text-slate-700 dark:text-slate-200 font-medium">Log out</Text>

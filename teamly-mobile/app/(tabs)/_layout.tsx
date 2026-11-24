@@ -1,10 +1,11 @@
 import React from "react";
-import { View } from "react-native";
-import { Tabs } from "expo-router";
+import { View, ActivityIndicator } from "react-native";
+import { Tabs, Redirect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CheckSquare, Calendar, User } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 import { useThemeStore } from "../../src/stores/themeStore";
+import { useAuthStore } from "../../src/stores/authStore";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -13,9 +14,32 @@ export default function TabLayout() {
   const isDark = colorScheme === "dark" || theme === "DARK";
   const bgThemeColor = isDark ? "#0f172a" : "#f8fafc";
 
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
   // Ensure comfortable bottom padding on devices with home gestures / physical navigation bar
   const bottomPadding = Math.max(insets.bottom, 12);
   const tabHeight = 56 + bottomPadding;
+
+  // Protect tabs from unauthenticated access
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: bgThemeColor,
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="#2563eb" />
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: bgThemeColor }}>
