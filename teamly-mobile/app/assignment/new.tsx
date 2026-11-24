@@ -232,7 +232,7 @@ export default function NewAssignmentScreen() {
         <TouchableOpacity
           onPress={handleSubmit}
           disabled={createMutation.isPending}
-          className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm active:bg-brand-700 mb-8"
+          className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm mb-8"
         >
           {createMutation.isPending ? (
             <ActivityIndicator color="#ffffff" />

@@ -87,7 +87,7 @@ export default function AssignmentsFeedScreen() {
     return (
       <TouchableOpacity
         onPress={() => router.push(`/assignment/${item.id}`)}
-        className="bg-white dark:bg-slate-800 p-4 rounded-2xl mb-3 shadow-sm border border-slate-100 dark:border-slate-700 active:opacity-90"
+        className="bg-white dark:bg-slate-800 p-4 rounded-2xl mb-3 shadow-sm border border-slate-100 dark:border-slate-700"
       >
         <View className="flex-row justify-between items-start mb-2">
           {item.subject ? (
@@ -178,7 +178,7 @@ export default function AssignmentsFeedScreen() {
         <TouchableOpacity
           onPress={() => syncMutation.mutate()}
           disabled={syncMutation.isPending}
-          className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3.5 py-2 rounded-full border border-brand-200 dark:border-brand-800 active:bg-brand-100"
+          className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3.5 py-2 rounded-full border border-brand-200 dark:border-brand-800"
         >
           {syncMutation.isPending ? (
             <ActivityIndicator size="small" color="#2563eb" />
@@ -231,7 +231,7 @@ export default function AssignmentsFeedScreen() {
       {/* Floating Action Button for Manual Assignment Creation */}
       <TouchableOpacity
         onPress={() => router.push("/assignment/new")}
-        className="absolute bottom-8 right-6 w-14 h-14 rounded-full bg-brand-600 justify-center items-center shadow-lg shadow-blue-500/40 active:bg-brand-700"
+        className="absolute bottom-8 right-6 w-14 h-14 rounded-full bg-brand-600 justify-center items-center shadow-lg shadow-blue-500/40"
       >
         <Plus size={28} color="#ffffff" />
       </TouchableOpacity>

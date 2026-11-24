@@ -130,7 +130,7 @@ export default function AssignmentDetailScreen() {
         <View className="flex-row items-center justify-between mb-4">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 justify-center items-center shadow-sm border border-slate-200 dark:border-slate-700 active:bg-slate-100"
+            className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 justify-center items-center shadow-sm border border-slate-200 dark:border-slate-700"
           >
             <ArrowLeft size={18} color="#0f172a" />
           </TouchableOpacity>

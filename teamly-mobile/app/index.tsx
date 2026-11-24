@@ -48,7 +48,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity
                 onPress={() => router.push("/(tabs)")}
-                className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm active:bg-brand-700 mb-2.5"
+                className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm mb-2.5"
               >
                 <Text className="text-white font-semibold text-lg">Go to Dashboard</Text>
               </TouchableOpacity>
@@ -64,7 +64,7 @@ export default function HomeScreen() {
             <>
               <TouchableOpacity
                 onPress={() => router.push("/login")}
-                className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm active:bg-brand-700 mb-3"
+                className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm mb-3"
               >
                 <Text className="text-white font-semibold text-lg">Sign In</Text>
               </TouchableOpacity>
