@@ -1,9 +1,11 @@
 from django.urls import path
 
-from .views import sync_view
+from . import views
 
 app_name = "sync"
 
 urlpatterns = [
-    path("", sync_view, name="sync"),
+    path("", views.sync_view, name="sync"),
+    path("trigger/", views.sync_trigger_view, name="trigger"),
 ]
+

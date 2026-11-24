@@ -67,9 +67,12 @@
 
 {% block content %}
 <section class="panel" aria-labelledby="assignments-heading">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
         <h1 id="assignments-heading" style="margin: 0;">Academic Assignments</h1>
-        <a href="{% url 'assignments:create' %}" class="btn-primary" style="display: inline-block; padding: 0.4rem 0.8rem; text-decoration: none; font-size: 0.9rem;">+ New Assignment</a>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <a href="{% url 'sync:sync' %}" class="btn-secondary" style="display: inline-block; padding: 0.4rem 0.8rem; text-decoration: none; font-size: 0.9rem;">⟳ Sync from Teams</a>
+            <a href="{% url 'assignments:create' %}" class="btn-primary" style="display: inline-block; padding: 0.4rem 0.8rem; text-decoration: none; font-size: 0.9rem;">+ New Assignment</a>
+        </div>
     </div>
 
     <form method="get" style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
