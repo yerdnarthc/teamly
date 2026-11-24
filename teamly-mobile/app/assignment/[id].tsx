@@ -111,8 +111,8 @@ export default function AssignmentDetailScreen() {
 
   if (!assignment) {
     return (
-      <View className="flex-1 justify-center items-center bg-slate-50 p-6">
-        <Text className="text-slate-600">Assignment not found.</Text>
+      <View className="flex-1 justify-center items-center bg-slate-50 dark:bg-slate-900 p-6">
+        <Text className="text-slate-600 dark:text-slate-400">Assignment not found.</Text>
       </View>
     );
   }

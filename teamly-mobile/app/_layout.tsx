@@ -1,5 +1,6 @@
 import "../global.css";
 import React, { useEffect } from "react";
+import { View } from "react-native";
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
@@ -66,55 +67,87 @@ export default function RootLayout() {
   }, [theme]);
 
   const isDark = colorScheme === "dark" || theme === "DARK";
+  const bgThemeColor = isDark ? "#0f172a" : "#f8fafc";
 
   return (
-    <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={isDark ? TeamlyDarkTheme : TeamlyLightTheme}>
-          <StatusBar style={isDark ? "light" : "dark"} />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              headerStyle: {
-                backgroundColor: isDark ? "#0f172a" : "#ffffff",
-              },
-              headerTintColor: isDark ? "#f8fafc" : "#0f172a",
-              headerTitleStyle: {
-                fontWeight: "700",
-                color: isDark ? "#f8fafc" : "#0f172a",
-              },
-              contentStyle: {
-                backgroundColor: isDark ? "#0f172a" : "#f8fafc",
-              },
-            }}
-          >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="login"
-              options={{
-                title: "Sign In",
-                headerShown: true,
-                headerStyle: {
-                  backgroundColor: isDark ? "#0f172a" : "#ffffff",
-                },
-                headerTintColor: isDark ? "#f8fafc" : "#0f172a",
-              }}
-            />
-            <Stack.Screen
-              name="register"
-              options={{
-                title: "Create Account",
-                headerShown: true,
-                headerStyle: {
-                  backgroundColor: isDark ? "#0f172a" : "#ffffff",
-                },
-                headerTintColor: isDark ? "#f8fafc" : "#0f172a",
-              }}
-            />
-          </Stack>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </SafeAreaProvider>
+    <View style={{ flex: 1, backgroundColor: bgThemeColor }}>
+      <SafeAreaProvider style={{ flex: 1, backgroundColor: bgThemeColor }}>
+        <QueryClientProvider client={queryClient}>
+          <ThemeProvider value={isDark ? TeamlyDarkTheme : TeamlyLightTheme}>
+            <StatusBar style={isDark ? "light" : "dark"} />
+            <View style={{ flex: 1, backgroundColor: bgThemeColor }}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  headerStyle: {
+                    backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                  },
+                  headerTintColor: isDark ? "#f8fafc" : "#0f172a",
+                  headerTitleStyle: {
+                    fontWeight: "700",
+                    color: isDark ? "#f8fafc" : "#0f172a",
+                  },
+                  contentStyle: {
+                    backgroundColor: bgThemeColor,
+                  },
+                }}
+              >
+                <Stack.Screen
+                  name="index"
+                  options={{
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
+                  name="login"
+                  options={{
+                    title: "Sign In",
+                    headerShown: true,
+                    headerStyle: {
+                      backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                    },
+                    headerTintColor: isDark ? "#f8fafc" : "#0f172a",
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
+                  name="register"
+                  options={{
+                    title: "Create Account",
+                    headerShown: true,
+                    headerStyle: {
+                      backgroundColor: isDark ? "#0f172a" : "#ffffff",
+                    },
+                    headerTintColor: isDark ? "#f8fafc" : "#0f172a",
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
+                  name="assignment/[id]"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
+                  name="assignment/new"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+              </Stack>
+            </View>
+          </ThemeProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </View>
   );
 }
