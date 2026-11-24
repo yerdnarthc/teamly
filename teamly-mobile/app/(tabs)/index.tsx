@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator, RefreshControl } from 
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { FlashList } from "@shopify/flash-list";
-import { Sparkles, Calendar, BookOpen, CheckCircle, Clock } from "lucide-react-native";
+import { Sparkles, Calendar, BookOpen, CheckCircle, Clock, Plus } from "lucide-react-native";
 import { apiClient } from "../../src/services/apiClient";
 
 export interface AssignmentListItem {
@@ -149,6 +149,14 @@ export default function AssignmentsFeedScreen() {
           </Text>
         </View>
       )}
+
+      {/* Floating Action Button for Manual Assignment Creation */}
+      <TouchableOpacity
+        onPress={() => router.push("/assignment/new")}
+        className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-brand-600 justify-center items-center shadow-lg shadow-blue-500/40 active:bg-brand-700"
+      >
+        <Plus size={28} color="#ffffff" />
+      </TouchableOpacity>
     </View>
   );
 }

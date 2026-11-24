@@ -24,6 +24,7 @@ urlpatterns = [
     # API v1 Endpoints (Headless Mobile Client)
     path("api/v1/auth/", include("apps.accounts.urls_api")),
     path("api/v1/assignments/", include("apps.assignments.urls_api")),
+    path("api/v1/academic/", include("apps.academic.urls_api")),
     # SSR Web Endpoints (Coexisting Hybrid)
     path("accounts/", include("apps.accounts.urls")),
     path("login/", include("apps.login.urls")),
