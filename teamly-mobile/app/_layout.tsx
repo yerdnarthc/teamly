@@ -158,6 +158,13 @@ export default function RootLayout() {
                     contentStyle: { backgroundColor: "transparent" },
                   }}
                 />
+                <Stack.Screen
+                  name="academic/index"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
               </Stack>
             </View>
           </ThemeProvider>

@@ -136,6 +136,8 @@ export default function AssignmentsFeedScreen() {
     onSuccess: (report) => {
       queryClient.invalidateQueries({ queryKey: ["assignments"] });
       queryClient.invalidateQueries({ queryKey: ["workload-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["subjects"] });
+      queryClient.invalidateQueries({ queryKey: ["academic-terms"] });
       setSyncToast(report.message);
       setTimeout(() => setSyncToast(null), 5000);
     },
@@ -330,26 +332,39 @@ export default function AssignmentsFeedScreen() {
         </View>
       )}
 
-      {/* Top Action Bar with Sync from Teams Button */}
+      {/* Top Action Bar with Courses & Sync from Teams Buttons */}
       <View className="flex-row items-center justify-between mb-3 px-1">
         <Text className="text-xs font-bold uppercase tracking-wider text-slate-400">
           {assignments?.length || 0} {hasAnyFilterOrSearch ? "Matching" : "Assignments"}
         </Text>
 
-        <TouchableOpacity
-          onPress={() => syncMutation.mutate()}
-          disabled={syncMutation.isPending}
-          className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3.5 py-2 rounded-full border border-brand-200 dark:border-brand-800"
-        >
-          {syncMutation.isPending ? (
-            <ActivityIndicator size="small" color="#2563eb" />
-          ) : (
-            <RefreshCw size={14} color="#2563eb" />
-          )}
-          <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 ml-1.5">
-            {syncMutation.isPending ? "Syncing..." : "Sync from Teams"}
-          </Text>
-        </TouchableOpacity>
+        <View className="flex-row items-center gap-2">
+          <TouchableOpacity
+            onPress={() => router.push("/academic")}
+            accessibilityLabel="View enrolled courses and terms"
+            className="flex-row items-center bg-white dark:bg-slate-800 px-3 py-2 rounded-full border border-slate-200 dark:border-slate-700"
+          >
+            <BookOpen size={14} color={isDark ? "#cbd5e1" : "#475569"} />
+            <Text className="text-xs font-semibold text-slate-700 dark:text-slate-200 ml-1.5">
+              Courses
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+            className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3.5 py-2 rounded-full border border-brand-200 dark:border-brand-800"
+          >
+            {syncMutation.isPending ? (
+              <ActivityIndicator size="small" color="#2563eb" />
+            ) : (
+              <RefreshCw size={14} color="#2563eb" />
+            )}
+            <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 ml-1.5">
+              {syncMutation.isPending ? "Syncing..." : "Sync from Teams"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Sync Toast Feedback Banner */}

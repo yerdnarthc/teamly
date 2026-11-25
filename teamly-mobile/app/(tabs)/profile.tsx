@@ -25,6 +25,8 @@ import {
   GraduationCap,
   CheckCircle2,
   Share2,
+  BookOpen,
+  ChevronRight,
 } from "lucide-react-native";
 import { apiClient } from "../../src/services/apiClient";
 import { useAuthStore } from "../../src/stores/authStore";
@@ -429,7 +431,28 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* 4. Microsoft Teams Education Connection Card */}
+        {/* 4. Academic Subjects & Terms Card */}
+        <TouchableOpacity
+          onPress={() => router.push("/academic")}
+          className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5 flex-row items-center justify-between"
+        >
+          <View className="flex-row items-center flex-1 mr-3">
+            <View className="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-950/60 justify-center items-center border border-brand-200 dark:border-brand-800 mr-3">
+              <BookOpen size={18} color="#2563eb" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-base font-bold text-slate-900 dark:text-white">
+                Subjects & Academic Terms
+              </Text>
+              <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                View enrolled courses, term dates, and coursework
+              </Text>
+            </View>
+          </View>
+          <ChevronRight size={18} color="#94a3b8" />
+        </TouchableOpacity>
+
+        {/* 5. Microsoft Teams Education Connection Card */}
         <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5">
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center">
