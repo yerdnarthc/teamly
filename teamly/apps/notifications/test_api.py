@@ -139,3 +139,42 @@ class NotificationPreferenceApiTests(TestCase):
         self.assertEqual(
             unauth.get(reverse("api_v1_notifications:history")).status_code, 401
         )
+
+    def test_updating_preferences_reschedules_and_toggles_reminders(self):
+        from datetime import timedelta
+
+        status_todo, _ = Status.objects.get_or_create(
+            code="NOT_STARTED", defaults={"label": "Not Started"}
+        )
+        priority_med, _ = Priority.objects.get_or_create(
+            code="MEDIUM", defaults={"rank": 2}
+        )
+        due_at = (timezone.now() + timedelta(days=4)).replace(microsecond=0)
+        assignment = Assignment.objects.create(
+            user=self.user,
+            title="Pref Reschedule Assignment",
+            due_at=due_at,
+            status=status_todo,
+            priority=priority_med,
+        )
+        reminder = Reminder.objects.create(
+            user=self.user,
+            assignment=assignment,
+            remind_at=due_at - timedelta(hours=24),
+            is_sent=False,
+        )
+
+        pref_url = reverse("api_v1_notifications:preferences")
+        resp_lead = self.client.patch(pref_url, {"lead_hours": 12}, format="json")
+        self.assertEqual(resp_lead.status_code, 200)
+        reminder.refresh_from_db()
+        self.assertEqual(reminder.remind_at, due_at - timedelta(hours=12))
+
+        resp_disable = self.client.patch(
+            pref_url, {"deadline_enabled": False}, format="json"
+        )
+        self.assertEqual(resp_disable.status_code, 200)
+        self.assertFalse(
+            Reminder.objects.filter(assignment=assignment, is_sent=False).exists()
+        )
+

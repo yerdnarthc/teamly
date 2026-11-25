@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 
 from .models import NotificationLog, NotificationPreference, Reminder
 from .serializers import NotificationPreferenceSerializer
+from .services import reschedule_user_reminders
 
 
 def _serialize_assignment_brief(assignment):
@@ -26,6 +27,10 @@ class ApiNotificationPreferenceView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         pref, _ = NotificationPreference.objects.get_or_create(user=self.request.user)
         return pref
+
+    def perform_update(self, serializer):
+        serializer.save()
+        reschedule_user_reminders(self.request.user)
 
 
 class NotificationHistoryApiView(APIView):

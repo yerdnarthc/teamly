@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Linking,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,11 +15,11 @@ import {
   CheckCircle2,
   Circle,
   Calendar,
-  BookOpen,
   Plus,
   ArrowLeft,
   Pencil,
   Trash2,
+  ExternalLink,
 } from "lucide-react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "nativewind";
@@ -44,12 +45,42 @@ interface AssignmentDetail {
   title: string;
   instructions: string;
   due_at: string | null;
+  source: string;
+  teams_url: string;
   status: { id: number; code: string; label: string };
   priority: { id: number; code: string; rank: number };
   subject: { id: number; name: string; color: string } | null;
   subtasks: Subtask[];
   ai_summary: AiSummary | null;
 }
+
+const PRIORITY_BADGE: Record<string, { label: string; bg: string; text: string }> = {
+  URGENT: {
+    label: "Urgent",
+    bg: "bg-rose-100 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800",
+    text: "text-rose-700 dark:text-rose-300",
+  },
+  HIGH: {
+    label: "High",
+    bg: "bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900",
+    text: "text-rose-700 dark:text-rose-300",
+  },
+  MEDIUM: {
+    label: "Medium",
+    bg: "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800",
+    text: "text-amber-700 dark:text-amber-300",
+  },
+  MED: {
+    label: "Medium",
+    bg: "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800",
+    text: "text-amber-700 dark:text-amber-300",
+  },
+  LOW: {
+    label: "Low",
+    bg: "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700",
+    text: "text-slate-600 dark:text-slate-300",
+  },
+};
 
 export default function AssignmentDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -217,25 +248,48 @@ export default function AssignmentDetailScreen() {
           </View>
         </View>
 
-        {/* Subject & Status */}
+        {/* Subject, Priority & Status */}
         <View className="flex-row items-center justify-between mb-3">
-          {assignment.subject && (
-            <View
-              className="px-3 py-1 rounded-full"
-              style={{ backgroundColor: `${assignment.subject.color}15` }}
-            >
-              <Text
-                className="text-xs font-bold"
-                style={{ color: assignment.subject.color }}
+          <View className="flex-1 mr-2">
+            {assignment.subject ? (
+              <View
+                className="px-3 py-1 rounded-full self-start max-w-full"
+                style={{ backgroundColor: `${assignment.subject.color}18` }}
               >
-                {assignment.subject.name}
+                <Text
+                  className="text-xs font-bold"
+                  style={{ color: assignment.subject.color }}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {assignment.subject.name}
+                </Text>
+              </View>
+            ) : (
+              <View className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full self-start">
+                <Text className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  General
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View className="flex-row items-center gap-1.5 flex-shrink-0">
+            {(() => {
+              const pBadge = PRIORITY_BADGE[assignment.priority?.code] || PRIORITY_BADGE.MEDIUM;
+              return (
+                <View className={`px-2.5 py-1 rounded-full border ${pBadge.bg}`}>
+                  <Text className={`text-xs font-semibold ${pBadge.text}`}>
+                    {pBadge.label}
+                  </Text>
+                </View>
+              );
+            })()}
+            <View className="bg-brand-50 dark:bg-brand-950/60 px-3 py-1 rounded-full border border-brand-200 dark:border-brand-800">
+              <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300">
+                {assignment.status.label}
               </Text>
             </View>
-          )}
-          <View className="bg-blue-50 dark:bg-blue-950/60 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-800">
-            <Text className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-              {assignment.status.label}
-            </Text>
           </View>
         </View>
 
@@ -244,12 +298,26 @@ export default function AssignmentDetailScreen() {
         {assignment.title}
       </Text>
 
-      {/* Deadline */}
-      <View className="flex-row items-center mb-6">
-        <Calendar size={16} color="#64748b" />
-        <Text className="text-sm text-slate-500 ml-2">
-          Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : "No deadline"}
-        </Text>
+      {/* Deadline & Teams Link */}
+      <View className="flex-row items-center justify-between flex-wrap gap-2 mb-6">
+        <View className="flex-row items-center">
+          <Calendar size={16} color="#64748b" />
+          <Text className="text-sm text-slate-500 dark:text-slate-400 ml-2">
+            Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : "No deadline"}
+          </Text>
+        </View>
+
+        {assignment.teams_url ? (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(assignment.teams_url).catch(() => {})}
+            className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3 py-1.5 rounded-xl border border-brand-200 dark:border-brand-800"
+          >
+            <ExternalLink size={13} color={isDark ? "#93c5fd" : "#2563eb"} />
+            <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 ml-1.5">
+              Open in Teams
+            </Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {/* Subtask Checklist Card */}

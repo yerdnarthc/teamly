@@ -46,14 +46,20 @@ const TeamlyLightTheme = {
 
 export default function RootLayout() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const theme = useThemeStore((state) => state.theme);
   const loadTheme = useThemeStore((state) => state.loadTheme);
   const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
     checkAuth();
-    loadTheme();
   }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadTheme();
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const syncNativeAppearance = (mode: "light" | "dark" | "unspecified") => {

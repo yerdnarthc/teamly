@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { tokenStorage } from "../services/tokenStorage";
-import { apiClient } from "../services/apiClient";
+import { apiClient, registerUnauthorizedHandler } from "../services/apiClient";
 
 export interface User {
   id: number;
@@ -62,3 +62,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ isAuthenticated: !!token, isLoading: false });
   },
 }));
+
+registerUnauthorizedHandler(() => {
+  useAuthStore.setState({ user: null, isAuthenticated: false });
+});

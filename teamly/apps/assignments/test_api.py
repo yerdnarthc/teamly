@@ -289,3 +289,74 @@ class AssignmentApiTests(TestCase):
         self.assertEqual(resp_subj.status_code, 200)
         self.assertEqual([a["title"] for a in resp_subj.data], ["Implement Sorting Algorithm"])
 
+    def test_create_update_complete_assignment_manages_reminder(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        from apps.notifications.models import Reminder
+
+        due_1 = (timezone.now() + timedelta(days=3)).replace(microsecond=0)
+        create_resp = self.client.post(
+            reverse("api_v1_assignments:assignment-list"),
+            {
+                "title": "Reminder Hook Test",
+                "due_at": due_1.isoformat(),
+                "status_code": "NOT_STARTED",
+                "priority_code": "HIGH",
+            },
+            format="json",
+        )
+        self.assertEqual(create_resp.status_code, 201)
+        assignment_id = create_resp.data["id"]
+        reminder = Reminder.objects.get(assignment_id=assignment_id, is_sent=False)
+        self.assertEqual(reminder.remind_at, due_1 - timedelta(hours=24))
+
+        due_2 = (timezone.now() + timedelta(days=5)).replace(microsecond=0)
+        detail_url = reverse("api_v1_assignments:assignment-detail", args=[assignment_id])
+        patch_due = self.client.patch(
+            detail_url,
+            {"due_at": due_2.isoformat()},
+            format="json",
+        )
+        self.assertEqual(patch_due.status_code, 200)
+        reminder.refresh_from_db()
+        self.assertEqual(reminder.remind_at, due_2 - timedelta(hours=24))
+
+        patch_done = self.client.patch(
+            detail_url,
+            {"status_code": "COMPLETED"},
+            format="json",
+        )
+        self.assertEqual(patch_done.status_code, 200)
+        self.assertFalse(
+            Reminder.objects.filter(assignment_id=assignment_id, is_sent=False).exists()
+        )
+
+    def test_default_ordering_chronological_due_at_nulls_last(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        now = timezone.now()
+        self.assignment.due_at = now + timedelta(days=5)
+        self.assignment.save(update_fields=["due_at"])
+
+        Assignment.objects.create(
+            user=self.user,
+            title="Undated Task",
+            due_at=None,
+            status=self.status_todo,
+            priority=self.priority_med,
+        )
+        Assignment.objects.create(
+            user=self.user,
+            title="Sooner Task",
+            due_at=now + timedelta(days=1),
+            status=self.status_todo,
+            priority=self.priority_high,
+        )
+
+        resp = self.client.get(reverse("api_v1_assignments:assignment-list"))
+        self.assertEqual(resp.status_code, 200)
+        titles = [item["title"] for item in resp.data]
+        self.assertEqual(titles, ["Sooner Task", self.assignment.title, "Undated Task"])
+
+

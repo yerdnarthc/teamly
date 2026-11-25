@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import F, Q
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.ai_assistant.advisor import adopt_suggested_subtask
+from apps.notifications.services import schedule_deadline_reminder
 from .models import Assignment, Subtask
 from .serializers import (
     AssignmentCreateUpdateSerializer,
@@ -30,6 +31,8 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         upcoming = self.request.query_params.get("upcoming")
         if upcoming == "true":
             qs = qs.exclude(status__code="COMPLETED").filter(due_at__isnull=False).order_by("due_at")
+        else:
+            qs = qs.order_by(F("due_at").asc(nulls_last=True), "-updated_at", "-id")
 
         # Keyword search across title, instructions, and subject name
         search_query = (
@@ -68,6 +71,14 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         elif self.action == "retrieve":
             return AssignmentDetailSerializer
         return AssignmentCreateUpdateSerializer
+
+    def perform_create(self, serializer):
+        assignment = serializer.save()
+        schedule_deadline_reminder(assignment)
+
+    def perform_update(self, serializer):
+        assignment = serializer.save()
+        schedule_deadline_reminder(assignment)
 
     @action(detail=False, methods=["get"], url_path="metrics")
     def metrics(self, request):

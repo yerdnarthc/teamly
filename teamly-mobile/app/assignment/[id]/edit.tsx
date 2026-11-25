@@ -136,6 +136,9 @@ export default function EditAssignmentScreen() {
     queryClient.invalidateQueries({ queryKey: ["assignments"] });
     queryClient.invalidateQueries({ queryKey: ["assignments", "upcoming"] });
     queryClient.invalidateQueries({ queryKey: ["workload-metrics"] });
+    queryClient.invalidateQueries({ queryKey: ["subjects"] });
+    queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+    queryClient.invalidateQueries({ queryKey: ["notification-history"] });
   };
 
   const updateMutation = useMutation({
