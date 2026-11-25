@@ -8,10 +8,12 @@ from apps.assignments.serializers import PrioritySerializer, StatusSerializer, S
 from .advisor import (
     analyze_assignment,
     analyze_pending_assignments,
-    build_workspace_insights,
     estimate_assignment_study_profile,
+    get_adopted_subtask_titles,
+    get_assistant_workspace,
+    record_ai_feedback,
 )
-from .models import AiFeedback, AiSummary
+from .models import AiSummary
 
 
 class WorkspaceAssignmentBriefSerializer(serializers.ModelSerializer):
@@ -40,7 +42,7 @@ class WorkspaceAssignmentBriefSerializer(serializers.ModelSerializer):
 
 def serialize_workspace_summary(summary: AiSummary, profile: dict) -> dict:
     assignment = summary.assignment
-    adopted_titles = [s.title.lower().strip() for s in assignment.subtasks.all()]
+    adopted_titles = get_adopted_subtask_titles(assignment)
     latest_feedback = summary.feedback.order_by("-created_at").first()
 
     return {
@@ -63,36 +65,16 @@ class AssistantWorkspaceApiView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        summaries = list(
-            AiSummary.objects.filter(assignment__user=request.user)
-            .select_related("assignment", "assignment__subject", "assignment__status", "assignment__priority")
-            .prefetch_related("assignment__subtasks", "feedback")
-            .order_by("-assignment__priority__rank", "assignment__due_at", "-created_at")
-        )
-        summaries_with_profiles = [
-            (s, estimate_assignment_study_profile(s.assignment, s)) for s in summaries
-        ]
-
-        unanalyzed = list(
-            Assignment.objects.filter(user=request.user)
-            .exclude(status__code="COMPLETED")
-            .filter(ai_summary__isnull=True)
-            .select_related("subject", "priority", "status")
-            .prefetch_related("subtasks")
-            .order_by("-priority__rank", "due_at")
-        )
-
-        insights = build_workspace_insights(summaries_with_profiles, len(unanalyzed))
-
+        workspace = get_assistant_workspace(request.user)
         return Response(
             {
-                "workspace_insights": insights,
+                "workspace_insights": workspace["workspace_insights"],
                 "summaries": [
                     serialize_workspace_summary(summary, profile)
-                    for summary, profile in summaries_with_profiles
+                    for summary, profile in workspace["summaries_with_profiles"]
                 ],
                 "unanalyzed_assignments": WorkspaceAssignmentBriefSerializer(
-                    unanalyzed, many=True
+                    workspace["unanalyzed"], many=True
                 ).data,
             },
             status=status.HTTP_200_OK,
@@ -137,18 +119,14 @@ class AssistantFeedbackApiView(APIView):
         summary = get_object_or_404(
             AiSummary, id=pk, assignment__user=request.user
         )
-        rating = request.data.get("rating")
-        if rating not in AiFeedback.Rating.values:
+        try:
+            feedback = record_ai_feedback(summary, request.data.get("rating"))
+        except ValueError as exc:
             return Response(
-                {"error": f"Invalid rating. Choose from {AiFeedback.Rating.values}."},
+                {"error": str(exc)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        feedback = AiFeedback.objects.create(
-            ai_summary=summary,
-            rating=rating,
-            corrected_text=request.data.get("corrected_text", ""),
-        )
         return Response(
             {
                 "id": feedback.id,

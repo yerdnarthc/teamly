@@ -76,3 +76,65 @@ def reschedule_user_reminders(user):
         assignments = Assignment.objects.filter(user=user).select_related("status")
         for assignment in assignments:
             schedule_deadline_reminder(assignment)
+
+
+def get_notification_history(user) -> dict:
+    """
+    Returns scheduled upcoming reminders and historical notification delivery logs
+    scoped to `user`.
+    """
+    from apps.assignments.querysets import serialize_assignment_brief
+    from .models import NotificationLog
+
+    pref, _ = NotificationPreference.objects.get_or_create(user=user)
+
+    reminders_qs = (
+        Reminder.objects.filter(user=user, is_sent=False)
+        .select_related("assignment", "assignment__subject")
+        .order_by("remind_at")
+    )
+    pending_count = reminders_qs.count()
+    reminders = [
+        {
+            "id": r.id,
+            "remind_at": r.remind_at,
+            "channel": r.channel,
+            "is_sent": r.is_sent,
+            "assignment": serialize_assignment_brief(r.assignment, include_due_at=True),
+        }
+        for r in reminders_qs[:30]
+    ]
+
+    logs_qs = (
+        NotificationLog.objects.filter(user=user)
+        .select_related("assignment", "assignment__subject")
+        .order_by("-sent_at")
+    )
+    delivered_count = logs_qs.count()
+    logs = [
+        {
+            "id": log.id,
+            "kind": log.kind,
+            "sent_at": log.sent_at,
+            "assignment": serialize_assignment_brief(log.assignment, include_due_at=True),
+        }
+        for log in logs_qs[:30]
+    ]
+
+    return {
+        "summary": {
+            "pending_count": pending_count,
+            "delivered_count": delivered_count,
+            "deadline_enabled": pref.deadline_enabled,
+            "lead_hours": pref.lead_hours,
+            "new_assignment": pref.new_assignment,
+        },
+        "reminders": reminders,
+        "logs": logs,
+    }
+
+
+def dismiss_user_reminder(user, reminder_id: int) -> bool:
+    """Deletes a reminder owned by `user`. Returns True if deleted, False if not found."""
+    deleted_count, _ = Reminder.objects.filter(id=reminder_id, user=user).delete()
+    return deleted_count > 0

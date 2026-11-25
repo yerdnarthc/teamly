@@ -1,4 +1,3 @@
-from django.db.models import F, Q
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -20,50 +19,19 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-        qs = (
-            Assignment.objects.filter(user=user)
+        params = self.request.query_params
+        return (
+            Assignment.objects.for_user(self.request.user)
             .select_related("status", "priority", "subject")
             .prefetch_related("subtasks")
-        )
-
-        # Upcoming deadlines filter: active tasks sorted chronologically by due date
-        upcoming = self.request.query_params.get("upcoming")
-        if upcoming == "true":
-            qs = qs.exclude(status__code="COMPLETED").filter(due_at__isnull=False).order_by("due_at")
-        else:
-            qs = qs.order_by(F("due_at").asc(nulls_last=True), "-updated_at", "-id")
-
-        # Keyword search across title, instructions, and subject name
-        search_query = (
-            self.request.query_params.get("q")
-            or self.request.query_params.get("search")
-            or ""
-        ).strip()
-        if search_query:
-            qs = qs.filter(
-                Q(title__icontains=search_query)
-                | Q(instructions__icontains=search_query)
-                | Q(subject__name__icontains=search_query)
+            .filter_by_params(
+                upcoming=params.get("upcoming") == "true",
+                search_query=params.get("q") or params.get("search") or "",
+                status_code=params.get("status"),
+                subject_id=params.get("subject"),
+                priority_code=params.get("priority"),
             )
-
-        # Filtering support for mobile
-        status_code = self.request.query_params.get("status")
-        if status_code:
-            qs = qs.filter(status__code=status_code)
-
-        subject_id = self.request.query_params.get("subject")
-        if subject_id:
-            qs = qs.filter(subject_id=subject_id)
-
-        priority_code = self.request.query_params.get("priority")
-        if priority_code:
-            if priority_code in ("MED", "MEDIUM"):
-                qs = qs.filter(priority__code__in=["MED", "MEDIUM"])
-            else:
-                qs = qs.filter(priority__code=priority_code)
-
-        return qs
+        )
 
     def get_serializer_class(self):
         if self.action == "list":

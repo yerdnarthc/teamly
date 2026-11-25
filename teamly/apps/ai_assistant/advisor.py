@@ -224,3 +224,51 @@ def build_workspace_insights(
         "complexity_level": complexity_level,
         "study_recommendation": study_recommendation,
     }
+
+
+def get_adopted_subtask_titles(assignment: Assignment) -> list[str]:
+    """Returns normalized titles of subtasks already adopted by the student."""
+    return [s.title.lower().strip() for s in assignment.subtasks.all()]
+
+
+def get_assistant_workspace(user) -> dict:
+    """Builds the full AI Study Workspace payload (insights, summaries, unanalyzed)."""
+    summaries = list(
+        AiSummary.objects.filter(assignment__user=user)
+        .select_related(
+            "assignment",
+            "assignment__subject",
+            "assignment__status",
+            "assignment__priority",
+        )
+        .prefetch_related("assignment__subtasks", "feedback")
+        .order_by("-assignment__priority__rank", "assignment__due_at", "-created_at")
+    )
+    summaries_with_profiles = [
+        (s, estimate_assignment_study_profile(s.assignment, s)) for s in summaries
+    ]
+
+    unanalyzed = list(
+        Assignment.objects.for_user(user)
+        .active()
+        .filter(ai_summary__isnull=True)
+        .select_related("subject", "priority", "status")
+        .prefetch_related("subtasks")
+        .order_by("-priority__rank", "due_at")
+    )
+
+    insights = build_workspace_insights(summaries_with_profiles, len(unanalyzed))
+    return {
+        "workspace_insights": insights,
+        "summaries_with_profiles": summaries_with_profiles,
+        "unanalyzed": unanalyzed,
+    }
+
+
+def record_ai_feedback(summary: AiSummary, rating: str) -> AiFeedback:
+    """Validates and persists student rating feedback for an AI summary."""
+    from .models import AiFeedback
+
+    if rating not in AiFeedback.Rating.values:
+        raise ValueError(f"Invalid rating. Choose from {AiFeedback.Rating.values}.")
+    return AiFeedback.objects.create(ai_summary=summary, rating=rating)

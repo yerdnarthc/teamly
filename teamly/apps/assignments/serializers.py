@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.academic.models import Subject
 from apps.ai_assistant.models import AiSummary
 from .models import Assignment, Priority, Status, Subtask
+from .querysets import expand_priority_codes
 
 
 class StatusSerializer(serializers.ModelSerializer):
@@ -97,7 +98,6 @@ class AssignmentDetailSerializer(serializers.ModelSerializer):
 
 
 class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
-    PRIORITY_ALIASES = {"MED": "MEDIUM", "MEDIUM": "MED"}
     EXTERNAL_TEAMS_FIELDS = ("title", "instructions", "due_at")
 
     subject_id = serializers.IntegerField(required=False, allow_null=True)
@@ -133,9 +133,7 @@ class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"Invalid status code: {value}")
 
     def validate_priority_code(self, value):
-        priority = Priority.objects.filter(code=value).first()
-        if priority is None and value in self.PRIORITY_ALIASES:
-            priority = Priority.objects.filter(code=self.PRIORITY_ALIASES[value]).first()
+        priority = Priority.objects.filter(code__in=expand_priority_codes(value)).first()
         if priority is None:
             raise serializers.ValidationError(f"Invalid priority code: {value}")
         return priority
