@@ -181,7 +181,7 @@ export default function AcademicSubjectsScreen() {
                     }
                     className={`p-4 rounded-3xl mb-2.5 border ${
                       isSelected
-                        ? "bg-brand-50 dark:bg-brand-950/50 border-brand-500"
+                        ? "bg-brand-50 dark:bg-brand-950/60 border-brand-500 dark:border-brand-500"
                         : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                     }`}
                   >

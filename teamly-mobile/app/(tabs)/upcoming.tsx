@@ -346,10 +346,10 @@ export default function UpcomingScreen() {
                         )}
                       </View>
 
-                      {item.priority.code === "HIGH" ? (
+                      {item.priority.code === "HIGH" || item.priority.code === "URGENT" ? (
                         <View className="bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-md border border-rose-200 dark:border-rose-900 flex-shrink-0">
                           <Text className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
-                            High
+                            {item.priority.code === "URGENT" ? "Urgent" : "High"}
                           </Text>
                         </View>
                       ) : item.source === "TEAMS" ? (

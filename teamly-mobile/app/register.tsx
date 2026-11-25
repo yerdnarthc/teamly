@@ -128,7 +128,7 @@ export default function RegisterScreen() {
         {/* Brand / Header Section */}
         <View className="items-center mb-6">
           <View className="w-16 h-16 rounded-2xl bg-brand-500/10 dark:bg-brand-500/20 justify-center items-center mb-3 border border-brand-500/20">
-            <GraduationCap size={32} color="#2563eb" />
+            <GraduationCap size={32} color={isDark ? "#60a5fa" : "#2563eb"} />
           </View>
           <Text className="text-2xl font-bold text-slate-900 dark:text-white text-center">
             Create Student Account

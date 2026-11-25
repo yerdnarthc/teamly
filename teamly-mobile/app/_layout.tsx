@@ -1,6 +1,6 @@
 import "../global.css";
 import React, { useEffect } from "react";
-import { View } from "react-native";
+import { Appearance, View } from "react-native";
 import { Stack, DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
@@ -56,12 +56,25 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    const syncNativeAppearance = (mode: "light" | "dark" | "unspecified") => {
+      if (typeof Appearance.setColorScheme === "function") {
+        try {
+          Appearance.setColorScheme(mode);
+        } catch {
+          // Ignore on platforms where native override isn't supported
+        }
+      }
+    };
+
     if (theme === "SYSTEM") {
       setColorScheme("system");
+      syncNativeAppearance("unspecified");
     } else if (theme === "DARK") {
       setColorScheme("dark");
+      syncNativeAppearance("dark");
     } else if (theme === "LIGHT") {
       setColorScheme("light");
+      syncNativeAppearance("light");
     }
   }, [theme]);
 

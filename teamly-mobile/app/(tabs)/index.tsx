@@ -356,9 +356,9 @@ export default function AssignmentsFeedScreen() {
             className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3.5 py-2 rounded-full border border-brand-200 dark:border-brand-800"
           >
             {syncMutation.isPending ? (
-              <ActivityIndicator size="small" color="#2563eb" />
+              <ActivityIndicator size="small" color={isDark ? "#93c5fd" : "#2563eb"} />
             ) : (
-              <RefreshCw size={14} color="#2563eb" />
+              <RefreshCw size={14} color={isDark ? "#93c5fd" : "#2563eb"} />
             )}
             <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 ml-1.5">
               {syncMutation.isPending ? "Syncing..." : "Sync from Teams"}

@@ -145,7 +145,7 @@ export function DeadlinePickerCard({
               accessibilityLabel="Select due date"
               className={`flex-row items-center justify-between px-3.5 py-3 rounded-2xl border ${
                 activeMode === "date"
-                  ? "bg-brand-50 dark:bg-brand-950/40 border-brand-500"
+                  ? "bg-brand-50 dark:bg-brand-950/60 border-brand-500 dark:border-brand-500"
                   : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
               }`}
             >
@@ -170,7 +170,7 @@ export function DeadlinePickerCard({
               accessibilityLabel="Select due time"
               className={`flex-row items-center justify-between px-3.5 py-3 rounded-2xl border ${
                 activeMode === "time"
-                  ? "bg-brand-50 dark:bg-brand-950/40 border-brand-500"
+                  ? "bg-brand-50 dark:bg-brand-950/60 border-brand-500 dark:border-brand-500"
                   : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
               }`}
             >

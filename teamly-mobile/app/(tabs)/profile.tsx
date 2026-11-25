@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
+  Appearance,
   View,
   Text,
   TextInput,
@@ -65,7 +66,8 @@ export default function ProfileScreen() {
   const queryClient = useQueryClient();
   const { user, logout } = useAuthStore();
   const { theme, setTheme, loadTheme } = useThemeStore();
-  const { setColorScheme } = useColorScheme();
+  const { colorScheme, setColorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark" || theme === "DARK";
 
   // Local form state for academic profile
   const [firstName, setFirstName] = useState("");
@@ -157,12 +159,25 @@ export default function ProfileScreen() {
   };
 
   const handleSelectTheme = (mode: ThemeMode) => {
+    const syncNative = (nativeMode: "light" | "dark" | "unspecified") => {
+      if (typeof Appearance.setColorScheme === "function") {
+        try {
+          Appearance.setColorScheme(nativeMode);
+        } catch {
+          // Ignore on unsupported platforms
+        }
+      }
+    };
+
     if (mode === "SYSTEM") {
       setColorScheme("system");
+      syncNative("unspecified");
     } else if (mode === "DARK") {
       setColorScheme("dark");
+      syncNative("dark");
     } else {
       setColorScheme("light");
+      syncNative("light");
     }
     setTheme(mode);
   };
@@ -191,7 +206,7 @@ export default function ProfileScreen() {
         {/* User Card */}
         <View className="bg-white dark:bg-slate-800 p-6 rounded-3xl mb-5 border border-slate-100 dark:border-slate-700 items-center">
           <View className="w-20 h-20 bg-brand-100 dark:bg-brand-900/50 rounded-full justify-center items-center mb-3">
-            <User size={36} color="#2563eb" />
+            <User size={36} color={isDark ? "#60a5fa" : "#2563eb"} />
           </View>
           <Text className="text-xl font-bold text-slate-900 dark:text-white">
             {displayName}
@@ -209,7 +224,7 @@ export default function ProfileScreen() {
         {/* 1. Academic Profile Information (Editable) */}
         <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5">
           <View className="flex-row items-center mb-1">
-            <GraduationCap size={18} color="#2563eb" />
+            <GraduationCap size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
             <Text className="text-base font-bold text-slate-900 dark:text-white ml-2">
               Academic Profile
             </Text>
@@ -288,7 +303,7 @@ export default function ProfileScreen() {
         {/* 2. Notification & Deadline Alerts */}
         <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5">
           <View className="flex-row items-center mb-1">
-            <Bell size={18} color="#2563eb" />
+            <Bell size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
             <Text className="text-base font-bold text-slate-900 dark:text-white ml-2">
               Notification Preferences
             </Text>
@@ -438,7 +453,7 @@ export default function ProfileScreen() {
         >
           <View className="flex-row items-center flex-1 mr-3">
             <View className="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-950/60 justify-center items-center border border-brand-200 dark:border-brand-800 mr-3">
-              <BookOpen size={18} color="#2563eb" />
+              <BookOpen size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
             <View className="flex-1">
               <Text className="text-base font-bold text-slate-900 dark:text-white">
@@ -456,7 +471,7 @@ export default function ProfileScreen() {
         <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5">
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center">
-              <Share2 size={18} color="#2563eb" />
+              <Share2 size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
               <Text className="text-base font-bold text-slate-900 dark:text-white ml-2">
                 Microsoft Teams Education
               </Text>
@@ -490,7 +505,7 @@ export default function ProfileScreen() {
         {/* 5. Security & Hardware Keystore Info */}
         <View className="bg-white dark:bg-slate-800 rounded-3xl p-4 border border-slate-100 dark:border-slate-700 mb-6">
           <View className="flex-row items-center p-1">
-            <Shield size={18} color="#2563eb" />
+            <Shield size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
             <View className="ml-3">
               <Text className="text-xs font-semibold text-slate-900 dark:text-white">
                 JWT Hardware Keystore

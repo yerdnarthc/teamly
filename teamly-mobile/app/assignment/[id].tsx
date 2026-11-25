@@ -278,7 +278,7 @@ export default function AssignmentDetailScreen() {
 
       {/* AI Assistant Section */}
       {assignment.ai_summary && (
-        <View className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-blue-100 dark:border-blue-900/40">
+        <View className="bg-brand-50 dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-brand-200 dark:border-brand-800/60">
           <View className="flex-row items-center mb-3">
             <View className="w-8 h-8 rounded-full bg-brand-500 justify-center items-center mr-2">
               <Sparkles size={16} color="#ffffff" />
