@@ -359,4 +359,53 @@ class AssignmentApiTests(TestCase):
         titles = [item["title"] for item in resp.data]
         self.assertEqual(titles, ["Sooner Task", self.assignment.title, "Undated Task"])
 
+    def test_teams_assignment_external_fields_are_immutable(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        due_1 = (timezone.now() + timedelta(days=2)).replace(microsecond=0)
+        due_2 = (timezone.now() + timedelta(days=6)).replace(microsecond=0)
+        teams_asg = Assignment.objects.create(
+            user=self.user,
+            title="Teams Official Lab",
+            instructions="Original professor rubric.",
+            due_at=due_1,
+            source=Assignment.Source.TEAMS,
+            teams_id="teams-ext-001",
+            status=self.status_todo,
+            priority=self.priority_med,
+        )
+        detail_url = reverse("api_v1_assignments:assignment-detail", args=[teams_asg.id])
+
+        # Attempting to mutate external fields must be rejected
+        bad_resp = self.client.patch(
+            detail_url,
+            {
+                "title": "Tampered Title",
+                "instructions": "Tampered instructions",
+                "due_at": due_2.isoformat(),
+                "status_code": "IN_PROGRESS",
+            },
+            format="json",
+        )
+        self.assertEqual(bad_resp.status_code, 400)
+        teams_asg.refresh_from_db()
+        self.assertEqual(teams_asg.title, "Teams Official Lab")
+        self.assertEqual(teams_asg.instructions, "Original professor rubric.")
+        self.assertEqual(teams_asg.due_at, due_1)
+
+        # Updating only Teamly-managed fields succeeds
+        ok_resp = self.client.patch(
+            detail_url,
+            {
+                "status_code": "IN_PROGRESS",
+                "priority_code": "HIGH",
+            },
+            format="json",
+        )
+        self.assertEqual(ok_resp.status_code, 200)
+        teams_asg.refresh_from_db()
+        self.assertEqual(teams_asg.status.code, "IN_PROGRESS")
+        self.assertEqual(teams_asg.priority.code, "HIGH")
+
 

@@ -143,12 +143,12 @@ export default function EditAssignmentScreen() {
 
   const updateMutation = useMutation({
     mutationFn: async (payload: {
-      title: string;
-      instructions: string;
+      title?: string;
+      instructions?: string;
       subject_id: number | null;
       status_code: StatusCode;
       priority_code: PriorityCode;
-      due_at: string | null;
+      due_at?: string | null;
     }) => {
       const res = await apiClient.patch(`/assignments/${id}/`, payload);
       return res.data;
@@ -186,6 +186,17 @@ export default function EditAssignmentScreen() {
 
   const handleSave = () => {
     setValidationError(null);
+    const isTeams = assignment?.source === "TEAMS";
+
+    if (isTeams) {
+      updateMutation.mutate({
+        subject_id: selectedSubjectId,
+        status_code: statusCode,
+        priority_code: priorityCode,
+      });
+      return;
+    }
+
     const trimmedTitle = title.trim();
     if (!trimmedTitle) {
       setValidationError("Assignment title cannot be empty.");
@@ -246,6 +257,7 @@ export default function EditAssignmentScreen() {
   }
 
   const isBusy = updateMutation.isPending || deleteMutation.isPending;
+  const isTeamsSource = assignment.source === "TEAMS";
 
   return (
     <SafeAreaView
@@ -312,19 +324,34 @@ export default function EditAssignmentScreen() {
 
           {/* Title Input */}
           <View className="mb-5">
-            <Text className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
-              Assignment Title *
-            </Text>
-            <TextInput
-              value={title}
-              onChangeText={(val) => {
-                setTitle(val);
-                if (validationError) setValidationError(null);
-              }}
-              placeholder="e.g. Chapter 4 Lab Exercise"
-              placeholderTextColor="#94a3b8"
-              className="border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800"
-            />
+            <View className="flex-row items-center justify-between mb-1.5">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                Assignment Title *
+              </Text>
+              {isTeamsSource && (
+                <Text className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                  Synced · Read-only
+                </Text>
+              )}
+            </View>
+            {isTeamsSource ? (
+              <View className="border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 bg-slate-100 dark:bg-slate-800/60">
+                <Text className="text-base text-slate-700 dark:text-slate-300">
+                  {title}
+                </Text>
+              </View>
+            ) : (
+              <TextInput
+                value={title}
+                onChangeText={(val) => {
+                  setTitle(val);
+                  if (validationError) setValidationError(null);
+                }}
+                placeholder="e.g. Chapter 4 Lab Exercise"
+                placeholderTextColor="#94a3b8"
+                className="border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800"
+              />
+            )}
           </View>
 
           {/* Status Selector */}
@@ -448,29 +475,60 @@ export default function EditAssignmentScreen() {
           </View>
 
           {/* Deadline Editor Card */}
-          <DeadlinePickerCard
-            hasDeadline={hasDeadline}
-            onToggleDeadline={setHasDeadline}
-            value={dueDate}
-            onChange={setDueDate}
-            isDark={isDark}
-          />
+          {isTeamsSource ? (
+            <View className="mb-5 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
+              <View className="flex-row items-center justify-between mb-1">
+                <Text className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                  Deadline
+                </Text>
+                <Text className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                  Synced · Read-only
+                </Text>
+              </View>
+              <Text className="text-sm text-slate-700 dark:text-slate-300">
+                {hasDeadline ? dueDate.toLocaleString() : "No deadline set"}
+              </Text>
+            </View>
+          ) : (
+            <DeadlinePickerCard
+              hasDeadline={hasDeadline}
+              onToggleDeadline={setHasDeadline}
+              value={dueDate}
+              onChange={setDueDate}
+              isDark={isDark}
+            />
+          )}
 
           {/* Instructions / Notes */}
           <View className="mb-6">
-            <Text className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
-              Instructions & Notes
-            </Text>
-            <TextInput
-              value={instructions}
-              onChangeText={setInstructions}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-              placeholder="Add assignment requirements, rubrics, or reminders..."
-              placeholderTextColor="#94a3b8"
-              className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800 min-h-[120px]"
-            />
+            <View className="flex-row items-center justify-between mb-1.5">
+              <Text className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                Instructions & Notes
+              </Text>
+              {isTeamsSource && (
+                <Text className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                  Synced · Read-only
+                </Text>
+              )}
+            </View>
+            {isTeamsSource ? (
+              <View className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 bg-slate-100 dark:bg-slate-800/60 min-h-[100px]">
+                <Text className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                  {instructions || "No instructions provided."}
+                </Text>
+              </View>
+            ) : (
+              <TextInput
+                value={instructions}
+                onChangeText={setInstructions}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                placeholder="Add assignment requirements, rubrics, or reminders..."
+                placeholderTextColor="#94a3b8"
+                className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800 min-h-[120px]"
+              />
+            )}
           </View>
 
           {/* Primary Save Button */}

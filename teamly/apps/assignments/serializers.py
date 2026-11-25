@@ -98,6 +98,7 @@ class AssignmentDetailSerializer(serializers.ModelSerializer):
 
 class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
     PRIORITY_ALIASES = {"MED": "MEDIUM", "MEDIUM": "MED"}
+    EXTERNAL_TEAMS_FIELDS = ("title", "instructions", "due_at")
 
     subject_id = serializers.IntegerField(required=False, allow_null=True)
     status_code = serializers.CharField(required=False, write_only=True)
@@ -114,6 +115,16 @@ class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
             "status_code",
             "priority_code",
         )
+
+    def validate(self, attrs):
+        if self.instance is not None and self.instance.source == Assignment.Source.TEAMS:
+            errors = {}
+            for field in self.EXTERNAL_TEAMS_FIELDS:
+                if field in attrs and attrs[field] != getattr(self.instance, field):
+                    errors[field] = "External Microsoft Teams fields cannot be modified."
+            if errors:
+                raise serializers.ValidationError(errors)
+        return attrs
 
     def validate_status_code(self, value):
         try:
