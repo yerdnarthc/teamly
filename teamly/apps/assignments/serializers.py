@@ -97,9 +97,11 @@ class AssignmentDetailSerializer(serializers.ModelSerializer):
 
 
 class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
+    PRIORITY_ALIASES = {"MED": "MEDIUM", "MEDIUM": "MED"}
+
     subject_id = serializers.IntegerField(required=False, allow_null=True)
-    status_code = serializers.CharField(required=False)
-    priority_code = serializers.CharField(required=False)
+    status_code = serializers.CharField(required=False, write_only=True)
+    priority_code = serializers.CharField(required=False, write_only=True)
 
     class Meta:
         model = Assignment
@@ -120,10 +122,12 @@ class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"Invalid status code: {value}")
 
     def validate_priority_code(self, value):
-        try:
-            return Priority.objects.get(code=value)
-        except Priority.DoesNotExist:
+        priority = Priority.objects.filter(code=value).first()
+        if priority is None and value in self.PRIORITY_ALIASES:
+            priority = Priority.objects.filter(code=self.PRIORITY_ALIASES[value]).first()
+        if priority is None:
             raise serializers.ValidationError(f"Invalid priority code: {value}")
+        return priority
 
     def validate_subject_id(self, value):
         if value is None:
@@ -137,7 +141,10 @@ class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context["request"].user
         status = validated_data.pop("status_code", None) or Status.objects.get(code="NOT_STARTED")
-        priority = validated_data.pop("priority_code", None) or Priority.objects.get(code="MED")
+        priority = (
+            validated_data.pop("priority_code", None)
+            or Priority.objects.filter(code__in=["MEDIUM", "MED"]).first()
+        )
         subject = validated_data.pop("subject_id", None)
 
         return Assignment.objects.create(

@@ -137,6 +137,13 @@ export default function RootLayout() {
                   }}
                 />
                 <Stack.Screen
+                  name="assignment/[id]/edit"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
                   name="assignment/new"
                   options={{
                     headerShown: false,

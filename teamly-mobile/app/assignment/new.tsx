@@ -27,7 +27,7 @@ export default function NewAssignmentScreen() {
   const [title, setTitle] = useState("");
   const [instructions, setInstructions] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
-  const [priorityCode, setPriorityCode] = useState<"HIGH" | "MED" | "LOW">("MED");
+  const [priorityCode, setPriorityCode] = useState<"URGENT" | "HIGH" | "MEDIUM" | "LOW">("MEDIUM");
 
   // Fetch student's enrolled subjects for the picker
   const { data: subjects, isLoading: loadingSubjects } = useQuery<SubjectOption[]>({
@@ -181,11 +181,12 @@ export default function NewAssignmentScreen() {
         <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           Priority Level
         </Text>
-        <View className="flex-row space-x-3">
+        <View className="flex-row gap-2">
           {[
-            { code: "LOW", label: "Low", color: "bg-slate-100 text-slate-700 border-slate-300" },
-            { code: "MED", label: "Medium", color: "bg-amber-50 text-amber-700 border-amber-300" },
-            { code: "HIGH", label: "High", color: "bg-rose-50 text-rose-700 border-rose-300" },
+            { code: "LOW", label: "Low" },
+            { code: "MEDIUM", label: "Medium" },
+            { code: "HIGH", label: "High" },
+            { code: "URGENT", label: "Urgent" },
           ].map((p) => {
             const isSelected = priorityCode === p.code;
             return (

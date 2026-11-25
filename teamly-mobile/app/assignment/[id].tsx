@@ -17,6 +17,8 @@ import {
   BookOpen,
   Plus,
   ArrowLeft,
+  Pencil,
+  Trash2,
 } from "lucide-react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "nativewind";
@@ -101,6 +103,38 @@ export default function AssignmentDetailScreen() {
     },
   });
 
+  // Mutation: Delete assignment
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await apiClient.delete(`/assignments/${id}/`);
+    },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ["assignment", id] });
+      queryClient.invalidateQueries({ queryKey: ["assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["assignments", "upcoming"] });
+      queryClient.invalidateQueries({ queryKey: ["workload-metrics"] });
+      router.back();
+    },
+    onError: () => {
+      Alert.alert("Delete Failed", "Could not delete this assignment.");
+    },
+  });
+
+  const handleConfirmDelete = () => {
+    Alert.alert(
+      "Delete Assignment",
+      `Permanently remove "${assignment?.title || "this assignment"}" and all subtasks?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => deleteMutation.mutate(),
+        },
+      ]
+    );
+  };
+
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-slate-50 dark:bg-slate-900">
@@ -129,14 +163,45 @@ export default function AssignmentDetailScreen() {
         contentContainerStyle={{ paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Back navigation header */}
+        {/* Back navigation & action header */}
         <View className="flex-row items-center justify-between mb-4">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 justify-center items-center shadow-sm border border-slate-200 dark:border-slate-700"
+            accessibilityLabel="Go back"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 justify-center items-center shadow-sm border border-slate-200 dark:border-slate-700"
           >
             <ArrowLeft size={18} color={isDark ? "#f8fafc" : "#0f172a"} />
           </TouchableOpacity>
+
+          <View className="flex-row items-center gap-2.5">
+            <TouchableOpacity
+              onPress={() => router.push(`/assignment/${assignment.id}/edit`)}
+              disabled={deleteMutation.isPending}
+              accessibilityLabel="Edit assignment"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              className="flex-row items-center px-3.5 h-11 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+            >
+              <Pencil size={15} color={isDark ? "#f8fafc" : "#0f172a"} />
+              <Text className="text-xs font-semibold text-slate-900 dark:text-slate-100 ml-1.5">
+                Edit
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleConfirmDelete}
+              disabled={deleteMutation.isPending}
+              accessibilityLabel="Delete assignment"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              className="w-11 h-11 rounded-full bg-rose-50 dark:bg-rose-950/50 justify-center items-center border border-rose-200 dark:border-rose-900"
+            >
+              {deleteMutation.isPending ? (
+                <ActivityIndicator size="small" color="#e11d48" />
+              ) : (
+                <Trash2 size={16} color="#e11d48" />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Subject & Status */}

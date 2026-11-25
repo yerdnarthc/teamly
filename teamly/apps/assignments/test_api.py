@@ -26,6 +26,9 @@ class AssignmentApiTests(TestCase):
         self.status_todo, _ = Status.objects.get_or_create(
             code="NOT_STARTED", defaults={"label": "Not Started"}
         )
+        self.status_in_progress, _ = Status.objects.get_or_create(
+            code="IN_PROGRESS", defaults={"label": "In Progress"}
+        )
         self.status_done, _ = Status.objects.get_or_create(
             code="COMPLETED", defaults={"label": "Completed"}
         )
@@ -184,4 +187,52 @@ class AssignmentApiTests(TestCase):
         self.assertEqual(response.data["total_count"], 1)
         self.assertEqual(response.data["active_count"], 1)
         self.assertEqual(response.data["completed_count"], 0)
+
+    def test_partial_update_assignment_fields_and_clear_optional_fields(self):
+        url = reverse("api_v1_assignments:assignment-detail", args=[self.assignment.id])
+        new_due = (timezone.now() + timedelta(days=5)).replace(microsecond=0)
+        response = self.client.patch(
+            url,
+            {
+                "title": "Updated Sorting Algorithm",
+                "instructions": "Updated rubric notes.",
+                "due_at": new_due.isoformat(),
+                "priority_code": "MEDIUM",
+                "status_code": "IN_PROGRESS",
+                "subject_id": None,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assignment.refresh_from_db()
+        self.assertEqual(self.assignment.title, "Updated Sorting Algorithm")
+        self.assertEqual(self.assignment.instructions, "Updated rubric notes.")
+        self.assertEqual(self.assignment.due_at, new_due)
+        self.assertEqual(self.assignment.priority.code, "MED")
+        self.assertIsNone(self.assignment.subject)
+
+        # Clear due_at to null
+        clear_resp = self.client.patch(url, {"due_at": None}, format="json")
+        self.assertEqual(clear_resp.status_code, 200)
+        self.assignment.refresh_from_db()
+        self.assertIsNone(self.assignment.due_at)
+
+    def test_update_other_user_assignment_returns_404(self):
+        url = reverse("api_v1_assignments:assignment-detail", args=[self.other_assignment.id])
+        response = self.client.patch(url, {"title": "Hijacked Title"}, format="json")
+        self.assertEqual(response.status_code, 404)
+        self.other_assignment.refresh_from_db()
+        self.assertEqual(self.other_assignment.title, "Other Student Secret Assignment")
+
+    def test_delete_own_assignment_returns_204(self):
+        url = reverse("api_v1_assignments:assignment-detail", args=[self.assignment.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Assignment.objects.filter(id=self.assignment.id).exists())
+
+    def test_delete_other_user_assignment_returns_404(self):
+        url = reverse("api_v1_assignments:assignment-detail", args=[self.other_assignment.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 404)
+        self.assertTrue(Assignment.objects.filter(id=self.other_assignment.id).exists())
 
