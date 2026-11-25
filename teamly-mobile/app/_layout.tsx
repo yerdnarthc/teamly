@@ -185,6 +185,13 @@ export default function RootLayout() {
                     contentStyle: { backgroundColor: bgThemeColor },
                   }}
                 />
+                <Stack.Screen
+                  name="notifications/history"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
               </Stack>
             </View>
           </ThemeProvider>

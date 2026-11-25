@@ -130,6 +130,7 @@ export default function ProfileScreen() {
     },
     onSuccess: (data: NotificationPreferences) => {
       queryClient.setQueryData(["notification-preferences"], data);
+      queryClient.invalidateQueries({ queryKey: ["notification-history"] });
     },
     onError: () => {
       Alert.alert("Preference Error", "Could not save notification setting.");
@@ -364,7 +365,7 @@ export default function ProfileScreen() {
           )}
 
           {/* New Assignment Alerts Switch */}
-          <View className="flex-row justify-between items-center pt-2.5">
+          <View className="flex-row justify-between items-center pt-2.5 pb-3 border-b border-slate-100 dark:border-slate-700/60">
             <View className="flex-1 mr-3">
               <Text className="text-sm font-semibold text-slate-800 dark:text-slate-200">
                 New Assignment Alerts
@@ -380,6 +381,16 @@ export default function ProfileScreen() {
               thumbColor="#ffffff"
             />
           </View>
+
+          <TouchableOpacity
+            onPress={() => router.push("/notifications/history")}
+            className="pt-3 flex-row items-center justify-between"
+          >
+            <Text className="text-xs font-bold text-brand-600 dark:text-brand-400">
+              View Scheduled Reminders & Delivery Log
+            </Text>
+            <ChevronRight size={16} color={isDark ? "#60a5fa" : "#2563eb"} />
+          </TouchableOpacity>
         </View>
 
         {/* 3. 3-Way Theme Selector Card */}
