@@ -9,14 +9,11 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
-  Switch,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
-  Calendar,
-  Clock,
   Trash2,
   Check,
   AlertCircle,
@@ -26,6 +23,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useColorScheme } from "nativewind";
 import { apiClient } from "../../../src/services/apiClient";
 import { useThemeStore } from "../../../src/stores/themeStore";
+import { DeadlinePickerCard } from "../../../src/components/DeadlinePickerCard";
 
 interface SubjectOption {
   id: number;
@@ -60,43 +58,11 @@ const PRIORITY_OPTIONS: Array<{ code: PriorityCode; label: string }> = [
   { code: "URGENT", label: "Urgent" },
 ];
 
-function formatDateInput(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function formatTimeInput(date: Date): string {
-  const hours = String(date.getHours()).padStart(2, "0");
-  const mins = String(date.getMinutes()).padStart(2, "0");
-  return `${hours}:${mins}`;
-}
-
-function parseDateAndTime(dateStr: string, timeStr: string): Date | null {
-  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr.trim());
-  const timeMatch = /^(\d{2}):(\d{2})$/.exec(timeStr.trim());
-  if (!dateMatch || !timeMatch) return null;
-
-  const year = Number(dateMatch[1]);
-  const month = Number(dateMatch[2]);
-  const day = Number(dateMatch[3]);
-  const hour = Number(timeMatch[1]);
-  const minute = Number(timeMatch[2]);
-
-  if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59) {
-    return null;
-  }
-
-  const parsed = new Date(year, month - 1, day, hour, minute, 0, 0);
-  if (
-    parsed.getFullYear() !== year ||
-    parsed.getMonth() !== month - 1 ||
-    parsed.getDate() !== day
-  ) {
-    return null;
-  }
-  return parsed;
+function getDefaultDueDate(): Date {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(23, 59, 0, 0);
+  return d;
 }
 
 export default function EditAssignmentScreen() {
@@ -114,8 +80,7 @@ export default function EditAssignmentScreen() {
   const [statusCode, setStatusCode] = useState<StatusCode>("NOT_STARTED");
   const [priorityCode, setPriorityCode] = useState<PriorityCode>("MEDIUM");
   const [hasDeadline, setHasDeadline] = useState(false);
-  const [dueDateStr, setDueDateStr] = useState("");
-  const [dueTimeStr, setDueTimeStr] = useState("23:59");
+  const [dueDate, setDueDate] = useState<Date>(getDefaultDueDate);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const { data: assignment, isLoading: loadingAssignment } = useQuery<AssignmentDetail>({
@@ -155,15 +120,11 @@ export default function EditAssignmentScreen() {
         const parsed = new Date(assignment.due_at);
         if (!Number.isNaN(parsed.getTime())) {
           setHasDeadline(true);
-          setDueDateStr(formatDateInput(parsed));
-          setDueTimeStr(formatTimeInput(parsed));
+          setDueDate(parsed);
         }
       } else {
         setHasDeadline(false);
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        setDueDateStr(formatDateInput(tomorrow));
-        setDueTimeStr("23:59");
+        setDueDate(getDefaultDueDate());
       }
 
       setInitialized(true);
@@ -220,15 +181,6 @@ export default function EditAssignmentScreen() {
     },
   });
 
-  const applyQuickDeadline = (daysFromToday: number) => {
-    const target = new Date();
-    target.setDate(target.getDate() + daysFromToday);
-    setHasDeadline(true);
-    setDueDateStr(formatDateInput(target));
-    setDueTimeStr("23:59");
-    setValidationError(null);
-  };
-
   const handleSave = () => {
     setValidationError(null);
     const trimmedTitle = title.trim();
@@ -237,23 +189,13 @@ export default function EditAssignmentScreen() {
       return;
     }
 
-    let dueAtIso: string | null = null;
-    if (hasDeadline) {
-      const parsed = parseDateAndTime(dueDateStr, dueTimeStr);
-      if (!parsed) {
-        setValidationError("Enter a valid date (YYYY-MM-DD) and 24-hour time (HH:MM).");
-        return;
-      }
-      dueAtIso = parsed.toISOString();
-    }
-
     updateMutation.mutate({
       title: trimmedTitle,
       instructions: instructions.trim(),
       subject_id: selectedSubjectId,
       status_code: statusCode,
       priority_code: priorityCode,
-      due_at: dueAtIso,
+      due_at: hasDeadline ? dueDate.toISOString() : null,
     });
   };
 
@@ -503,96 +445,13 @@ export default function EditAssignmentScreen() {
           </View>
 
           {/* Deadline Editor Card */}
-          <View className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-200 dark:border-slate-700 mb-5">
-            <View className="flex-row items-center justify-between mb-3">
-              <View className="flex-row items-center">
-                <Calendar size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
-                <Text className="text-sm font-bold text-slate-900 dark:text-white ml-2">
-                  Due Date & Time
-                </Text>
-              </View>
-              <Switch
-                value={hasDeadline}
-                onValueChange={(val) => {
-                  setHasDeadline(val);
-                  if (val && !dueDateStr) {
-                    applyQuickDeadline(1);
-                  }
-                }}
-                trackColor={{ false: "#cbd5e1", true: "#2563eb" }}
-                thumbColor="#ffffff"
-              />
-            </View>
-
-            {hasDeadline ? (
-              <>
-                <View className="flex-row flex-wrap gap-2 mb-3">
-                  {[
-                    { label: "Today", days: 0 },
-                    { label: "Tomorrow", days: 1 },
-                    { label: "+3 Days", days: 3 },
-                    { label: "+1 Week", days: 7 },
-                  ].map((preset) => (
-                    <TouchableOpacity
-                      key={preset.label}
-                      onPress={() => applyQuickDeadline(preset.days)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600"
-                    >
-                      <Text className="text-xs font-semibold text-slate-700 dark:text-slate-200">
-                        {preset.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <View className="flex-row gap-3">
-                  <View className="flex-1">
-                    <Text className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                      Date (YYYY-MM-DD)
-                    </Text>
-                    <View className="flex-row items-center border border-slate-200 dark:border-slate-700 rounded-xl px-3 bg-slate-50 dark:bg-slate-900">
-                      <Calendar size={14} color="#94a3b8" />
-                      <TextInput
-                        value={dueDateStr}
-                        onChangeText={(val) => {
-                          setDueDateStr(val);
-                          if (validationError) setValidationError(null);
-                        }}
-                        placeholder="2026-12-01"
-                        placeholderTextColor="#94a3b8"
-                        keyboardType="numbers-and-punctuation"
-                        className="flex-1 py-2.5 px-2 text-sm text-slate-900 dark:text-white"
-                      />
-                    </View>
-                  </View>
-
-                  <View className="w-28">
-                    <Text className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                      Time (24h)
-                    </Text>
-                    <View className="flex-row items-center border border-slate-200 dark:border-slate-700 rounded-xl px-3 bg-slate-50 dark:bg-slate-900">
-                      <Clock size={14} color="#94a3b8" />
-                      <TextInput
-                        value={dueTimeStr}
-                        onChangeText={(val) => {
-                          setDueTimeStr(val);
-                          if (validationError) setValidationError(null);
-                        }}
-                        placeholder="23:59"
-                        placeholderTextColor="#94a3b8"
-                        keyboardType="numbers-and-punctuation"
-                        className="flex-1 py-2.5 px-2 text-sm text-slate-900 dark:text-white"
-                      />
-                    </View>
-                  </View>
-                </View>
-              </>
-            ) : (
-              <Text className="text-xs text-slate-500 dark:text-slate-400">
-                No deadline set. Toggle on to track this task in Upcoming Deadlines.
-              </Text>
-            )}
-          </View>
+          <DeadlinePickerCard
+            hasDeadline={hasDeadline}
+            onToggleDeadline={setHasDeadline}
+            value={dueDate}
+            onChange={setDueDate}
+            isDark={isDark}
+          />
 
           {/* Instructions / Notes */}
           <View className="mb-6">

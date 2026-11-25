@@ -10,9 +10,12 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BookOpen, AlertCircle, Calendar, Check, X } from "lucide-react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { X } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useColorScheme } from "nativewind";
 import { apiClient } from "../../src/services/apiClient";
+import { useThemeStore } from "../../src/stores/themeStore";
+import { DeadlinePickerCard } from "../../src/components/DeadlinePickerCard";
 
 interface SubjectOption {
   id: number;
@@ -23,11 +26,21 @@ interface SubjectOption {
 export default function NewAssignmentScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { colorScheme } = useColorScheme();
+  const theme = useThemeStore((state) => state.theme);
+  const isDark = colorScheme === "dark" || theme === "DARK";
 
   const [title, setTitle] = useState("");
   const [instructions, setInstructions] = useState("");
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
   const [priorityCode, setPriorityCode] = useState<"URGENT" | "HIGH" | "MEDIUM" | "LOW">("MEDIUM");
+  const [hasDeadline, setHasDeadline] = useState(false);
+  const [dueDate, setDueDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(23, 59, 0, 0);
+    return d;
+  });
 
   // Fetch student's enrolled subjects for the picker
   const { data: subjects, isLoading: loadingSubjects } = useQuery<SubjectOption[]>({
@@ -46,12 +59,15 @@ export default function NewAssignmentScreen() {
       subject_id: number | null;
       priority_code: string;
       status_code: string;
+      due_at: string | null;
     }) => {
       const res = await apiClient.post("/assignments/", payload);
       return res.data;
     },
     onSuccess: (newAssignment) => {
       queryClient.invalidateQueries({ queryKey: ["assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["assignments", "upcoming"] });
+      queryClient.invalidateQueries({ queryKey: ["workload-metrics"] });
       Alert.alert("Success", "Assignment created successfully!", [
         {
           text: "View Assignment",
@@ -83,6 +99,7 @@ export default function NewAssignmentScreen() {
       subject_id: selectedSubjectId,
       priority_code: priorityCode,
       status_code: "NOT_STARTED",
+      due_at: hasDeadline ? dueDate.toISOString() : null,
     });
   };
 
@@ -211,6 +228,15 @@ export default function NewAssignmentScreen() {
           })}
         </View>
       </View>
+
+      {/* Deadline Picker */}
+      <DeadlinePickerCard
+        hasDeadline={hasDeadline}
+        onToggleDeadline={setHasDeadline}
+        value={dueDate}
+        onChange={setDueDate}
+        isDark={isDark}
+      />
 
       {/* Instructions / Notes */}
       <View className="mb-8">

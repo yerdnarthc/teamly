@@ -1,11 +1,10 @@
 import "../global.css";
 import React, { useEffect } from "react";
 import { View } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useColorScheme } from "nativewind";
 import { useAuthStore } from "../src/stores/authStore";
 import { useThemeStore } from "../src/stores/themeStore";
