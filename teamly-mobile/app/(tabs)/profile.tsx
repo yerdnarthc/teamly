@@ -495,11 +495,21 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          <Text className="text-xs text-slate-500 leading-4">
+          <Text className="text-xs text-slate-500 leading-4 mb-3.5">
             {profile?.microsoft_account?.is_connected
               ? `Linked with Tenant: ${profile.microsoft_account.tenant_id}. Sync is operational.`
               : "No live Microsoft Graph OAuth session linked. The mobile client is currently utilizing the authorized development seed for sync simulations."}
           </Text>
+
+          <TouchableOpacity
+            onPress={() => router.push("/sync/history")}
+            className="pt-3 border-t border-slate-100 dark:border-slate-700 flex-row items-center justify-between"
+          >
+            <Text className="text-xs font-bold text-brand-600 dark:text-brand-400">
+              View Sync Diagnostics & Event Stream
+            </Text>
+            <ChevronRight size={16} color={isDark ? "#60a5fa" : "#2563eb"} />
+          </TouchableOpacity>
         </View>
 
         {/* 5. Security & Hardware Keystore Info */}

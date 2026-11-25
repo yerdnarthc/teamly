@@ -6,6 +6,7 @@ from rest_framework.views import APIView
 
 from apps.academic.models import Subject
 from .ingestion import ingest_subject_assignments
+from .models import AssignmentEvent, SyncCursor, SyncRun
 
 
 class SyncTeamsApiView(APIView):
@@ -61,6 +62,90 @@ class SyncTeamsApiView(APIView):
                 "unchanged_count": total_unchanged,
                 "events_emitted": total_events,
                 "message": message,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class SyncHistoryApiView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        """
+        Returns sync diagnostics for the authenticated student:
+        subject delta cursors, recent SyncRuns, and chronological AssignmentEvents.
+        """
+        user = request.user
+
+        subjects = Subject.objects.filter(user=user).order_by("name")
+        cursor_map = {
+            c.subject_id: c
+            for c in SyncCursor.objects.filter(subject__user=user).select_related("subject")
+        }
+
+        cursors = []
+        for subj in subjects:
+            cursor = cursor_map.get(subj.id)
+            cursors.append(
+                {
+                    "subject_id": subj.id,
+                    "subject_name": subj.name,
+                    "subject_color": subj.color,
+                    "last_ok_at": cursor.last_ok_at if cursor else None,
+                    "last_error": cursor.last_error if cursor else "",
+                    "has_delta_token": bool(cursor and cursor.delta_link_ref),
+                }
+            )
+
+        runs_qs = SyncRun.objects.filter(user=user).order_by("-started_at")
+        total_runs = runs_qs.count()
+        runs = [
+            {
+                "id": run.id,
+                "started_at": run.started_at,
+                "finished_at": run.finished_at,
+                "new_count": run.new_count,
+                "updated_count": run.updated_count,
+                "result": run.result,
+            }
+            for run in runs_qs[:15]
+        ]
+
+        events_qs = (
+            AssignmentEvent.objects.filter(user=user)
+            .select_related("assignment", "assignment__subject")
+            .order_by("-created_at")
+        )
+        total_events = events_qs.count()
+        events = []
+        for evt in events_qs[:30]:
+            assignment_data = None
+            if evt.assignment is not None:
+                assignment_data = {
+                    "id": evt.assignment.id,
+                    "title": evt.assignment.title,
+                    "subject_name": evt.assignment.subject.name if evt.assignment.subject else None,
+                    "subject_color": evt.assignment.subject.color if evt.assignment.subject else None,
+                }
+            events.append(
+                {
+                    "id": evt.id,
+                    "kind": evt.kind,
+                    "created_at": evt.created_at,
+                    "assignment": assignment_data,
+                }
+            )
+
+        return Response(
+            {
+                "summary": {
+                    "total_runs": total_runs,
+                    "total_events": total_events,
+                    "last_sync_at": runs[0]["started_at"] if runs else None,
+                },
+                "cursors": cursors,
+                "runs": runs,
+                "events": events,
             },
             status=status.HTTP_200_OK,
         )

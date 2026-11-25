@@ -59,3 +59,48 @@ class SyncApiTests(TestCase):
         self.assertEqual(response2.status_code, 200)
         self.assertEqual(response2.data["created_count"], 0)
         self.assertGreaterEqual(response2.data["unchanged_count"], 1)
+
+    def test_sync_history_returns_scoped_runs_events_and_cursors(self):
+        # Trigger sync for self.user
+        self.client.post(reverse("api_v1_sync:sync-teams"), format="json")
+
+        # Create another user's sync run to verify isolation
+        other_user = User.objects.create_user(
+            username="other_sync_user", password="Password123!"
+        )
+        other_client = APIClient()
+        other_client.force_authenticate(user=other_user)
+        Subject.objects.create(
+            user=other_user,
+            term=self.term,
+            name="Other Course",
+            teams_group_id="teams_other_sync_99",
+        )
+        other_client.post(reverse("api_v1_sync:sync-teams"), format="json")
+
+        url = reverse("api_v1_sync:sync-history")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertIn("summary", response.data)
+        self.assertIn("cursors", response.data)
+        self.assertIn("runs", response.data)
+        self.assertIn("events", response.data)
+
+        self.assertEqual(len(response.data["cursors"]), 1)
+        self.assertEqual(response.data["cursors"][0]["subject_name"], "Physics 101")
+        self.assertTrue(response.data["cursors"][0]["has_delta_token"])
+
+        self.assertGreaterEqual(len(response.data["runs"]), 1)
+        self.assertEqual(response.data["runs"][0]["result"], "SUCCESS")
+
+        self.assertGreaterEqual(len(response.data["events"]), 1)
+        self.assertEqual(
+            response.data["events"][0]["assignment"]["subject_name"], "Physics 101"
+        )
+
+    def test_unauthenticated_sync_history_rejected(self):
+        self.client.force_authenticate(user=None)
+        self.assertEqual(
+            self.client.get(reverse("api_v1_sync:sync-history")).status_code, 401
+        )
