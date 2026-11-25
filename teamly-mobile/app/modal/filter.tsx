@@ -13,7 +13,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useColorScheme } from "nativewind";
 import { X, Check, RotateCcw } from "lucide-react-native";
 import { apiClient } from "../../src/services/apiClient";
-import { useAssignmentFilterStore } from "../../src/stores/assignmentFilterStore";
+import {
+  AssignmentSortOption,
+  useAssignmentFilterStore,
+} from "../../src/stores/assignmentFilterStore";
 import { useThemeStore } from "../../src/stores/themeStore";
 
 interface SubjectOption {
@@ -37,18 +40,27 @@ const PRIORITY_OPTIONS = [
   { code: "URGENT", label: "Urgent" },
 ];
 
+const SORT_OPTIONS: { code: AssignmentSortOption; label: string }[] = [
+  { code: "due_asc", label: "Due Soonest" },
+  { code: "due_desc", label: "Due Latest" },
+  { code: "priority", label: "Priority" },
+  { code: "subject", label: "Subject" },
+  { code: "status", label: "Status" },
+];
+
 export default function FilterBottomSheetModal() {
   const router = useRouter();
   const { colorScheme } = useColorScheme();
   const theme = useThemeStore((state) => state.theme);
   const isDark = colorScheme === "dark" || theme === "DARK";
 
-  const { statusCode, priorityCode, subjectId, setFilters } =
+  const { statusCode, priorityCode, subjectId, sortBy, setFilters } =
     useAssignmentFilterStore();
 
   const [draftStatus, setDraftStatus] = useState<string | null>(statusCode);
   const [draftPriority, setDraftPriority] = useState<string | null>(priorityCode);
   const [draftSubjectId, setDraftSubjectId] = useState<number | null>(subjectId);
+  const [draftSortBy, setDraftSortBy] = useState<AssignmentSortOption>(sortBy);
 
   const { data: subjects, isLoading: loadingSubjects } = useQuery<SubjectOption[]>({
     queryKey: ["subjects"],
@@ -62,6 +74,7 @@ export default function FilterBottomSheetModal() {
     setDraftStatus(null);
     setDraftPriority(null);
     setDraftSubjectId(null);
+    setDraftSortBy("due_asc");
   };
 
   const handleApply = () => {
@@ -69,12 +82,16 @@ export default function FilterBottomSheetModal() {
       statusCode: draftStatus,
       priorityCode: draftPriority,
       subjectId: draftSubjectId,
+      sortBy: draftSortBy,
     });
     router.back();
   };
 
   const activeDraftCount =
-    (draftStatus ? 1 : 0) + (draftPriority ? 1 : 0) + (draftSubjectId ? 1 : 0);
+    (draftStatus ? 1 : 0) +
+    (draftPriority ? 1 : 0) +
+    (draftSubjectId ? 1 : 0) +
+    (draftSortBy !== "due_asc" ? 1 : 0);
 
   return (
     <View className="flex-1 justify-end bg-black/50">
@@ -132,6 +149,35 @@ export default function FilterBottomSheetModal() {
             contentContainerStyle={{ paddingBottom: 16 }}
             showsVerticalScrollIndicator={false}
           >
+            {/* Sort By Section */}
+            <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">
+              Sort By
+            </Text>
+            <View className="flex-row flex-wrap gap-2 mb-5">
+              {SORT_OPTIONS.map((opt) => {
+                const selected = draftSortBy === opt.code;
+                return (
+                  <TouchableOpacity
+                    key={opt.code}
+                    onPress={() => setDraftSortBy(opt.code)}
+                    className={`px-3.5 py-2 rounded-full border ${
+                      selected
+                        ? "bg-brand-600 border-brand-600"
+                        : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                    }`}
+                  >
+                    <Text
+                      className={`text-xs font-semibold ${
+                        selected ? "text-white" : "text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      {opt.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
             {/* Status Section */}
             <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5">
               Progress Status

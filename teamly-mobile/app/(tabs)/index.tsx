@@ -67,6 +67,13 @@ const PRIORITY_LABELS: Record<string, string> = {
   URGENT: "Urgent",
 };
 
+const SORT_LABELS: Record<string, string> = {
+  due_desc: "Due Latest",
+  priority: "Priority",
+  subject: "Subject",
+  status: "Status",
+};
+
 export default function AssignmentsFeedScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -80,6 +87,7 @@ export default function AssignmentsFeedScreen() {
     statusCode,
     priorityCode,
     subjectId,
+    sortBy,
     setSearchQuery,
     setFilters,
     resetAll,
@@ -95,7 +103,10 @@ export default function AssignmentsFeedScreen() {
   }, [searchQuery]);
 
   const activeFilterCount =
-    (statusCode ? 1 : 0) + (priorityCode ? 1 : 0) + (subjectId ? 1 : 0);
+    (statusCode ? 1 : 0) +
+    (priorityCode ? 1 : 0) +
+    (subjectId ? 1 : 0) +
+    (sortBy !== "due_asc" ? 1 : 0);
   const hasAnyFilterOrSearch = activeFilterCount > 0 || debouncedSearch.length > 0;
 
   const { data: subjects } = useQuery<SubjectOption[]>({
@@ -114,13 +125,14 @@ export default function AssignmentsFeedScreen() {
     isRefetching,
     refetch,
   } = useQuery<AssignmentListItem[]>({
-    queryKey: ["assignments", debouncedSearch, statusCode, priorityCode, subjectId],
+    queryKey: ["assignments", debouncedSearch, statusCode, priorityCode, subjectId, sortBy],
     queryFn: async ({ signal }) => {
       const params: Record<string, string | number> = {};
       if (debouncedSearch) params.q = debouncedSearch;
       if (statusCode) params.status = statusCode;
       if (priorityCode) params.priority = priorityCode;
       if (subjectId) params.subject = subjectId;
+      if (sortBy && sortBy !== "due_asc") params.sort = sortBy;
 
       const res = await apiClient.get("/assignments/", { params, signal });
       return res.data;
@@ -325,6 +337,20 @@ export default function AssignmentsFeedScreen() {
             >
               <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 mr-1">
                 {activeSubjectName || "Course"}
+              </Text>
+              <X size={12} color={isDark ? "#93c5fd" : "#1d4ed8"} />
+            </TouchableOpacity>
+          )}
+
+          {sortBy !== "due_asc" && (
+            <TouchableOpacity
+              onPress={() =>
+                setFilters({ statusCode, priorityCode, subjectId, sortBy: "due_asc" })
+              }
+              className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-full border border-brand-200 dark:border-brand-800"
+            >
+              <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 mr-1">
+                Sort: {SORT_LABELS[sortBy] || sortBy}
               </Text>
               <X size={12} color={isDark ? "#93c5fd" : "#1d4ed8"} />
             </TouchableOpacity>

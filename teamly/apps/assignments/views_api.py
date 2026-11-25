@@ -30,6 +30,7 @@ class AssignmentViewSet(viewsets.ModelViewSet):
                 status_code=params.get("status"),
                 subject_id=params.get("subject"),
                 priority_code=params.get("priority"),
+                sort_by=params.get("sort"),
             )
         )
 

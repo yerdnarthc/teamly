@@ -5,6 +5,18 @@ from django.utils import timezone
 
 PRIORITY_ALIASES = {"MED": "MEDIUM", "MEDIUM": "MED"}
 
+SORT_ORDERINGS = {
+    "due_asc": (F("due_at").asc(nulls_last=True), "-updated_at", "-id"),
+    "due_desc": (F("due_at").desc(nulls_last=True), "-updated_at", "-id"),
+    "priority": ("priority__rank", F("due_at").asc(nulls_last=True), "-id"),
+    "subject": (
+        F("subject__name").asc(nulls_last=True),
+        F("due_at").asc(nulls_last=True),
+        "-id",
+    ),
+    "status": ("status__label", F("due_at").asc(nulls_last=True), "-id"),
+}
+
 
 def expand_priority_codes(priority_code: str) -> list[str]:
     """Returns canonical and aliased priority codes for uniform lookup/filtering."""
@@ -51,12 +63,14 @@ class AssignmentQuerySet(models.QuerySet):
         status_code: str | None = None,
         subject_id: str | int | None = None,
         priority_code: str | None = None,
+        sort_by: str | None = None,
     ):
         qs = self
         if upcoming:
             qs = qs.active().filter(due_at__isnull=False).order_by("due_at")
         else:
-            qs = qs.order_by(F("due_at").asc(nulls_last=True), "-updated_at", "-id")
+            ordering = SORT_ORDERINGS.get(sort_by or "due_asc", SORT_ORDERINGS["due_asc"])
+            qs = qs.order_by(*ordering)
 
         if search_query:
             qs = qs.search(search_query)

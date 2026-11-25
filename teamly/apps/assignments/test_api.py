@@ -408,4 +408,75 @@ class AssignmentApiTests(TestCase):
         self.assertEqual(teams_asg.status.code, "IN_PROGRESS")
         self.assertEqual(teams_asg.priority.code, "HIGH")
 
+    def test_assignment_sorting_options(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        from apps.academic.models import AcademicTerm, Subject
+
+        now = timezone.now()
+        term, _ = AcademicTerm.objects.get_or_create(
+            name="Sort Term 2026",
+            defaults={"starts_on": "2026-01-01", "ends_on": "2026-06-30"},
+        )
+        subj_a, _ = Subject.objects.get_or_create(
+            user=self.user,
+            term=term,
+            name="Algorithms",
+            defaults={"color": "#2563EB", "teams_group_id": "teams_alg_sort"},
+        )
+        subj_z, _ = Subject.objects.get_or_create(
+            user=self.user,
+            term=term,
+            name="Zoology",
+            defaults={"color": "#10B981", "teams_group_id": "teams_zoo_sort"},
+        )
+
+        self.assignment.due_at = now + timedelta(days=5)
+        self.assignment.subject = subj_z
+        self.assignment.priority = self.priority_med
+        self.assignment.save()
+
+        asg_high = Assignment.objects.create(
+            user=self.user,
+            title="High Priority Early",
+            due_at=now + timedelta(days=1),
+            subject=subj_a,
+            status=self.status_done,
+            priority=self.priority_high,
+        )
+
+        url = reverse("api_v1_assignments:assignment-list")
+
+        # due_desc (nulls last)
+        resp_desc = self.client.get(url, {"sort": "due_desc"})
+        self.assertEqual(resp_desc.status_code, 200)
+        self.assertEqual(
+            [a["title"] for a in resp_desc.data],
+            [self.assignment.title, asg_high.title],
+        )
+
+        # priority (highest rank first)
+        resp_prio = self.client.get(url, {"sort": "priority"})
+        self.assertEqual(resp_prio.status_code, 200)
+        self.assertEqual(
+            [a["title"] for a in resp_prio.data],
+            [asg_high.title, self.assignment.title],
+        )
+
+        # subject (alphabetical by subject name)
+        resp_subj = self.client.get(url, {"sort": "subject"})
+        self.assertEqual(resp_subj.status_code, 200)
+        self.assertEqual(
+            [a["title"] for a in resp_subj.data],
+            [asg_high.title, self.assignment.title],
+        )
+
+        # status (alphabetical by status label: Completed before Not Started)
+        resp_status = self.client.get(url, {"sort": "status"})
+        self.assertEqual(resp_status.status_code, 200)
+        self.assertEqual(
+            [a["title"] for a in resp_status.data],
+            [asg_high.title, self.assignment.title],
+        )
+
 
