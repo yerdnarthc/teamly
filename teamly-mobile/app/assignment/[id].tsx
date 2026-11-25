@@ -408,6 +408,21 @@ export default function AssignmentDetailScreen() {
             {assignment.ai_summary.summary}
           </Text>
 
+          {assignment.ai_summary.deadlines && assignment.ai_summary.deadlines.length > 0 && (
+            <View className="flex-row flex-wrap gap-1.5 mb-4">
+              {assignment.ai_summary.deadlines.map((dl, dlIdx) => (
+                <View
+                  key={dlIdx}
+                  className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800"
+                >
+                  <Text className="text-xs font-medium text-amber-800 dark:text-amber-300">
+                    Date hint: {dl}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
           {/* Suggested Subtasks with One-Click Adoption */}
           <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
             Suggested Action Items
@@ -453,6 +468,10 @@ export default function AssignmentDetailScreen() {
               </View>
             );
           })}
+
+          <Text className="text-[11px] text-slate-500 dark:text-slate-400 mt-3 pt-3 border-t border-blue-100/60 dark:border-slate-700 leading-4">
+            AI Disclaimer: Generated as a study aid only — verify against the original professor instructions and official deadline.
+          </Text>
         </View>
       ) : (
         <View className="bg-white dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-slate-200 dark:border-slate-700">

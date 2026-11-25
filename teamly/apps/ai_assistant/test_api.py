@@ -151,3 +151,23 @@ class AiAssistantApiTests(TestCase):
         self.assertEqual(
             self.client.get(reverse("api_v1_assistant:workspace")).status_code, 401
         )
+
+    def test_analyze_extracts_deadlines_and_serializes_in_workspace(self):
+        deadline_asg = Assignment.objects.create(
+            user=self.user,
+            title="Capstone Proposal",
+            instructions="Submit proposal by Dec 5, 2026 at 11:59 PM. Peer review due 2026-12-10.",
+            status=self.status_todo,
+            priority=self.priority_high,
+        )
+        analyze_url = reverse("api_v1_assistant:analyze", args=[deadline_asg.id])
+        analyze_resp = self.client.post(analyze_url, format="json")
+        self.assertEqual(analyze_resp.status_code, 201)
+        self.assertIn("deadlines", analyze_resp.data)
+        self.assertTrue(len(analyze_resp.data["deadlines"]) >= 1)
+
+        ws_resp = self.client.get(reverse("api_v1_assistant:workspace"))
+        self.assertEqual(ws_resp.status_code, 200)
+        matched = [s for s in ws_resp.data["summaries"] if s["assignment"]["id"] == deadline_asg.id]
+        self.assertEqual(len(matched), 1)
+        self.assertEqual(matched[0]["deadlines"], analyze_resp.data["deadlines"])

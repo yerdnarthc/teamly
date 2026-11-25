@@ -50,6 +50,7 @@ def serialize_workspace_summary(summary: AiSummary, profile: dict) -> dict:
         "assignment": WorkspaceAssignmentBriefSerializer(assignment).data,
         "summary": summary.summary,
         "requirements": summary.requirements or [],
+        "deadlines": summary.deadlines or [],
         "suggested_subtasks": summary.suggested_subtasks or [],
         "adopted_titles": adopted_titles,
         "complexity": profile["complexity"],

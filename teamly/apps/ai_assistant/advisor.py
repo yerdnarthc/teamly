@@ -62,14 +62,42 @@ class DeterministicAiAdapter(BaseAiAdapter):
             + "; ".join(requirements[:2])
             + ("..." if len(requirements) > 2 else ".")
         )
+        deadlines = _extract_deadline_hints(clean_text)
 
         return {
             "summary": summary_text,
             "requirements": requirements[:5],
-            "deadlines": [],
+            "deadlines": deadlines,
             "suggested_subtasks": suggested_subtasks[:6],
             "model": "deterministic-v1",
         }
+
+
+_DATE_HINT_PATTERN = re.compile(
+    r"\b(?:"
+    r"\d{4}-\d{2}-\d{2}"
+    r"|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|"
+    r"Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+    r"\s+\d{1,2}(?:st|nd|rd|th)?(?:,\s*\d{4})?(?:\s+(?:at\s+)?\d{1,2}:\d{2}\s*(?:AM|PM))?"
+    r"|\d{1,2}/\d{1,2}/\d{2,4}"
+    r")\b",
+    re.IGNORECASE,
+)
+
+
+def _extract_deadline_hints(text: str) -> list[str]:
+    """Extracts unique date/time hints from assignment instructions."""
+    if not text:
+        return []
+    seen = set()
+    hints = []
+    for match in _DATE_HINT_PATTERN.finditer(text):
+        value = match.group(0).strip()
+        key = value.lower()
+        if key not in seen:
+            seen.add(key)
+            hints.append(value)
+    return hints[:5]
 
 
 class GeminiAiAdapter(BaseAiAdapter):

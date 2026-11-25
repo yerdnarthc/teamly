@@ -50,6 +50,7 @@ interface WorkspaceSummaryItem {
   assignment: WorkspaceAssignment;
   summary: string;
   requirements: string[];
+  deadlines?: string[];
   suggested_subtasks: string[];
   adopted_titles: string[];
   complexity: "Light" | "Moderate" | "High";
@@ -410,6 +411,11 @@ export default function AiAssistantWorkspaceScreen() {
             </Text>
           </View>
 
+          {/* AI Assistance Disclaimer */}
+          <Text className="text-[11px] text-slate-400 dark:text-slate-500 mt-2.5 leading-4">
+            AI Disclaimer: Summaries and task suggestions are assistive study aids and do not replace official professor instructions or Teams deadlines.
+          </Text>
+
           {unanalyzed.length > 0 && (
             <TouchableOpacity
               onPress={() => analyzeAllMutation.mutate()}
@@ -635,6 +641,20 @@ export default function AiAssistantWorkspaceScreen() {
                 <Text className="text-xs text-slate-600 dark:text-slate-300 leading-5 mb-2">
                   {item.summary}
                 </Text>
+                {item.deadlines && item.deadlines.length > 0 && (
+                  <View className="flex-row flex-wrap gap-1.5 mb-2">
+                    {item.deadlines.map((dl, dlIdx) => (
+                      <View
+                        key={dlIdx}
+                        className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800"
+                      >
+                        <Text className="text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                          Date hint: {dl}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
                 <Text className="text-[11px] font-medium text-brand-700 dark:text-brand-300 mb-3">
                   Tip: {item.study_tip}
                 </Text>
