@@ -83,7 +83,7 @@ export default function FilterBottomSheetModal() {
 
       {/* Bottom Sheet Panel */}
       <View className="bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 max-h-[82%]">
-        <SafeAreaView edges={["bottom", "left", "right"]}>
+        <SafeAreaView edges={["bottom", "left", "right"]} className="w-full max-h-full">
           {/* Drag Handle */}
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
@@ -128,7 +128,7 @@ export default function FilterBottomSheetModal() {
           </View>
 
           <ScrollView
-            className="px-5 pt-4"
+            className="px-5 pt-4 flex-shrink"
             contentContainerStyle={{ paddingBottom: 16 }}
             showsVerticalScrollIndicator={false}
           >

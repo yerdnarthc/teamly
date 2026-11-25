@@ -178,3 +178,56 @@ class NotificationPreferenceApiTests(TestCase):
             Reminder.objects.filter(assignment=assignment, is_sent=False).exists()
         )
 
+    def test_updating_preferences_prevents_and_handles_duplicate_unsent_reminders(self):
+        from datetime import timedelta
+        from django.db import IntegrityError, transaction
+
+        status_todo, _ = Status.objects.get_or_create(
+            code="NOT_STARTED", defaults={"label": "Not Started"}
+        )
+        priority_med, _ = Priority.objects.get_or_create(
+            code="MEDIUM", defaults={"rank": 2}
+        )
+        due_at = (timezone.now() + timedelta(days=4)).replace(microsecond=0)
+        assignment = Assignment.objects.create(
+            user=self.user,
+            title="Duplicate Reminder Assignment",
+            due_at=due_at,
+            status=status_todo,
+            priority=priority_med,
+        )
+
+        # Historical sent reminder + one unsent reminder are both allowed
+        Reminder.objects.create(
+            user=self.user,
+            assignment=assignment,
+            remind_at=due_at - timedelta(hours=48),
+            is_sent=True,
+        )
+        Reminder.objects.create(
+            user=self.user,
+            assignment=assignment,
+            remind_at=due_at - timedelta(hours=24),
+            is_sent=False,
+        )
+
+        # DB constraint forbids inserting a second unsent reminder
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Reminder.objects.create(
+                    user=self.user,
+                    assignment=assignment,
+                    remind_at=due_at - timedelta(hours=24),
+                    is_sent=False,
+                )
+
+        # Repeated PATCH calls remain idempotent and never raise MultipleObjectsReturned
+        pref_url = reverse("api_v1_notifications:preferences")
+        for hours in (12, 6, 48):
+            response = self.client.patch(pref_url, {"lead_hours": hours}, format="json")
+            self.assertEqual(response.status_code, 200)
+
+        unsent = Reminder.objects.filter(assignment=assignment, is_sent=False)
+        self.assertEqual(unsent.count(), 1)
+        self.assertEqual(unsent.first().remind_at, due_at - timedelta(hours=48))
+

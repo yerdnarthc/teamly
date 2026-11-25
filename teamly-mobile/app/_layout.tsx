@@ -62,26 +62,22 @@ export default function RootLayout() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    const syncNativeAppearance = (mode: "light" | "dark" | "unspecified") => {
+    const nativeMode =
+      theme === "SYSTEM" ? "unspecified" : theme === "DARK" ? "dark" : "light";
+    setColorScheme(theme === "SYSTEM" ? "system" : theme === "DARK" ? "dark" : "light");
+
+    // Defer native Appearance override so the UI button & NativeWind paint on the next frame
+    const timer = setTimeout(() => {
       if (typeof Appearance.setColorScheme === "function") {
         try {
-          Appearance.setColorScheme(mode);
+          Appearance.setColorScheme(nativeMode);
         } catch {
           // Ignore on platforms where native override isn't supported
         }
       }
-    };
+    }, 0);
 
-    if (theme === "SYSTEM") {
-      setColorScheme("system");
-      syncNativeAppearance("unspecified");
-    } else if (theme === "DARK") {
-      setColorScheme("dark");
-      syncNativeAppearance("dark");
-    } else if (theme === "LIGHT") {
-      setColorScheme("light");
-      syncNativeAppearance("light");
-    }
+    return () => clearTimeout(timer);
   }, [theme]);
 
   const isDark = colorScheme === "dark" || theme === "DARK";

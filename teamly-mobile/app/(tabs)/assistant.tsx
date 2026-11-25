@@ -25,6 +25,7 @@ import {
   X,
 } from "lucide-react-native";
 import { apiClient } from "../../src/services/apiClient";
+import { useCoalescedMutation } from "../../src/hooks/useCoalescedMutation";
 import { useThemeStore } from "../../src/stores/themeStore";
 
 interface SubjectBrief {
@@ -179,36 +180,83 @@ export default function AiAssistantWorkspaceScreen() {
       assignmentId: number;
       title: string;
     }) => {
-      setAdoptingKey(`${assignmentId}:${title}`);
       await apiClient.post(`/assignments/${assignmentId}/adopt-subtask/`, { title });
     },
-    onSuccess: async (_data, vars) => {
-      await queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
-      queryClient.invalidateQueries({ queryKey: ["assignments"] });
-      queryClient.invalidateQueries({ queryKey: ["assignment", String(vars.assignmentId)] });
-      showFeedbackToast(`Added "${vars.title}" to your checklist.`);
+    onMutate: async ({ assignmentId, title }) => {
+      await queryClient.cancelQueries({ queryKey: ["ai-workspace"] });
+      const previous = queryClient.getQueryData<AssistantWorkspaceResponse>(["ai-workspace"]);
+      if (previous) {
+        const normalized = title.trim().toLowerCase();
+        queryClient.setQueryData<AssistantWorkspaceResponse>(["ai-workspace"], {
+          ...previous,
+          summaries: previous.summaries.map((s) => {
+            if (s.assignment.id !== assignmentId) return s;
+            const alreadyAdopted = s.adopted_titles.some(
+              (t) => t.trim().toLowerCase() === normalized
+            );
+            return {
+              ...s,
+              adopted_titles: alreadyAdopted ? s.adopted_titles : [...s.adopted_titles, title],
+              assignment: {
+                ...s.assignment,
+                subtask_count: alreadyAdopted
+                  ? s.assignment.subtask_count
+                  : s.assignment.subtask_count + 1,
+              },
+            };
+          }),
+        });
+      }
+      showFeedbackToast(`Added "${title}" to your checklist.`);
+      return { previous };
     },
-    onError: () => {
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["ai-workspace"], context.previous);
+      }
+      setFeedbackToast(null);
       Alert.alert("Adoption Failed", "Could not adopt suggested subtask.");
     },
-    onSettled: () => setAdoptingKey(null),
+    onSettled: (_data, _err, vars) => {
+      setAdoptingKey(null);
+      queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+      queryClient.invalidateQueries({ queryKey: ["assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["assignment", String(vars.assignmentId)] });
+    },
   });
 
-  const feedbackMutation = useMutation({
-    mutationFn: async ({
-      summaryId,
-      rating,
-    }: {
-      summaryId: number;
-      rating: "UP" | "DOWN";
-    }) => {
-      await apiClient.post(`/assistant/summaries/${summaryId}/feedback/`, { rating });
+  const feedbackCoalesced = useCoalescedMutation<
+    AssistantWorkspaceResponse,
+    Record<number, "UP" | "DOWN">,
+    void
+  >({
+    queryKey: ["ai-workspace"],
+    mutationKey: ["ai-workspace-feedback"],
+    debounceMs: 350,
+    mutationFn: async (ratingsMap, signal) => {
+      await Promise.all(
+        Object.entries(ratingsMap).map(([summaryId, rating]) =>
+          apiClient.post(
+            `/assistant/summaries/${summaryId}/feedback/`,
+            { rating },
+            { signal }
+          )
+        )
+      );
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+    applyOptimistic: (current, ratingsMap) => ({
+      ...current,
+      summaries: current.summaries.map((s) =>
+        ratingsMap[s.id] ? { ...s, user_rating: ratingsMap[s.id] } : s
+      ),
+    }),
+    isNoOp: (confirmed, next) =>
+      confirmed.summaries.every((s, idx) => s.user_rating === next.summaries[idx]?.user_rating),
+    onSuccess: () => {
       showFeedbackToast("Feedback saved. Thank you!");
     },
     onError: () => {
+      setFeedbackToast(null);
       Alert.alert("Feedback Failed", "Could not save your rating.");
     },
   });
@@ -676,12 +724,7 @@ export default function AiAssistantWorkspaceScreen() {
                   </Text>
                   <View className="flex-row items-center gap-2">
                     <TouchableOpacity
-                      onPress={() =>
-                        feedbackMutation.mutate({
-                          summaryId: item.id,
-                          rating: "UP",
-                        })
-                      }
+                      onPress={() => feedbackCoalesced.trigger({ [item.id]: "UP" })}
                       accessibilityLabel="Mark AI summary helpful"
                       className={`px-2.5 py-1.5 rounded-xl border flex-row items-center ${
                         item.user_rating === "UP"
@@ -698,12 +741,7 @@ export default function AiAssistantWorkspaceScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      onPress={() =>
-                        feedbackMutation.mutate({
-                          summaryId: item.id,
-                          rating: "DOWN",
-                        })
-                      }
+                      onPress={() => feedbackCoalesced.trigger({ [item.id]: "DOWN" })}
                       accessibilityLabel="Mark AI summary not helpful"
                       className={`px-2.5 py-1.5 rounded-xl border flex-row items-center ${
                         item.user_rating === "DOWN"

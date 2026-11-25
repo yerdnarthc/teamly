@@ -1,0 +1,62 @@
+appId: host.exp.exponent
+---
+# Flow 3: Upcoming, AI Study (with rapid feedback spam test), Profile (with rapid notification/theme spam test), & History Logs
+- tapOn: "Upcoming"
+- assertVisible: "Upcoming"
+
+# AI Study Tab + Rapid Like/Dislike Coalescing Test
+- tapOn: "AI Study"
+- assertVisible: "AI Assistant"
+- tapOn:
+    id: ".*"
+    text: "All"
+    optional: true
+- tapOn:
+    label: "Mark AI summary helpful"
+    index: 0
+- tapOn:
+    label: "Mark AI summary not helpful"
+    index: 0
+- tapOn:
+    label: "Mark AI summary helpful"
+    index: 0
+- takeScreenshot: "qa-03-ai-study"
+
+# Profile Tab + Rapid Notification Lead Time Coalescing Test
+- tapOn: "Profile"
+- assertVisible: "Student Profile"
+- tapOn: "2h"
+- tapOn: "12h"
+- tapOn: "24h"
+- tapOn: "48h"
+- tapOn: "24h"
+
+# Display Theme Switching
+- scrollUntilVisible:
+    element: "Display Theme"
+    direction: DOWN
+- tapOn: "Light"
+- waitForAnimationToEnd
+- takeScreenshot: "qa-03-profile-light"
+- tapOn: "Dark"
+- waitForAnimationToEnd
+- takeScreenshot: "qa-03-profile-dark"
+
+# Notification History Log
+- scrollUntilVisible:
+    element: "View Scheduled Reminders & Delivery Log"
+    direction: UP
+    optional: true
+- tapOn: "View Scheduled Reminders & Delivery Log"
+- assertVisible: "Reminders & Alerts"
+- takeScreenshot: "qa-03-notif-history"
+- back
+
+# Sync Diagnostics Log
+- scrollUntilVisible:
+    element: "View Sync Diagnostics & Event Stream"
+    direction: DOWN
+- tapOn: "View Sync Diagnostics & Event Stream"
+- assertVisible: "Sync Diagnostics"
+- takeScreenshot: "qa-03-sync-history"
+- back

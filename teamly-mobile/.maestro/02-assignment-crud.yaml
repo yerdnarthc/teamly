@@ -1,0 +1,42 @@
+appId: host.exp.exponent
+---
+# Flow 2: Assignment Create, Detail, Edit, and Delete Lifecycle
+- tapOn: "Assignments"
+- tapOn: "Create new assignment"
+- assertVisible: "New Assignment"
+
+- tapOn: "e.g. Chapter 4 Lab Exercise"
+- inputText: "Maestro QA Assignment"
+- hideKeyboard
+
+- scrollUntilVisible:
+    element: "Create Assignment"
+    direction: DOWN
+- tapOn: "Create Assignment"
+
+# Alert dialog -> View Assignment
+- assertVisible: "Assignment created successfully!"
+- tapOn: "VIEW ASSIGNMENT"
+
+# Detail screen -> Edit
+- assertVisible: "Maestro QA Assignment"
+- tapOn: "Edit"
+- assertVisible: "Edit Assignment"
+- tapOn: "Maestro QA Assignment"
+- eraseText: 25
+- inputText: "Maestro QA Edited"
+- hideKeyboard
+
+- scrollUntilVisible:
+    element: "Save Changes"
+    direction: DOWN
+- tapOn: "Save Changes"
+
+# Back on detail screen -> Delete
+- assertVisible: "Maestro QA Edited"
+- takeScreenshot: "qa-02-detail-edited"
+- tapOn: "Delete assignment"
+- tapOn: "Delete"
+
+# Back on Assignments
+- assertVisible: "Search assignments or courses..."

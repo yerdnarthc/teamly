@@ -2,6 +2,7 @@
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Q
 
 
 class Reminder(models.Model):
@@ -27,6 +28,13 @@ class Reminder(models.Model):
 
     class Meta:
         db_table = "reminder"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "assignment"],
+                condition=Q(is_sent=False),
+                name="uniq_unsent_reminder_per_user_assignment",
+            )
+        ]
 
     def __str__(self):
         return f"Reminder for {self.assignment.title} at {self.remind_at}"

@@ -115,14 +115,14 @@ export default function AssignmentsFeedScreen() {
     refetch,
   } = useQuery<AssignmentListItem[]>({
     queryKey: ["assignments", debouncedSearch, statusCode, priorityCode, subjectId],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const params: Record<string, string | number> = {};
       if (debouncedSearch) params.q = debouncedSearch;
       if (statusCode) params.status = statusCode;
       if (priorityCode) params.priority = priorityCode;
       if (subjectId) params.subject = subjectId;
 
-      const res = await apiClient.get("/assignments/", { params });
+      const res = await apiClient.get("/assignments/", { params, signal });
       return res.data;
     },
   });
@@ -357,7 +357,9 @@ export default function AssignmentsFeedScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => syncMutation.mutate()}
+            onPress={() => {
+              if (!syncMutation.isPending) syncMutation.mutate();
+            }}
             disabled={syncMutation.isPending}
             className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3.5 py-2 rounded-full border border-brand-200 dark:border-brand-800"
           >

@@ -30,6 +30,7 @@ import {
   ChevronRight,
 } from "lucide-react-native";
 import { apiClient } from "../../src/services/apiClient";
+import { useCoalescedMutation } from "../../src/hooks/useCoalescedMutation";
 import { useAuthStore } from "../../src/stores/authStore";
 import { useThemeStore, ThemeMode } from "../../src/stores/themeStore";
 
@@ -65,8 +66,8 @@ export default function ProfileScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, logout } = useAuthStore();
-  const { theme, setTheme, loadTheme } = useThemeStore();
-  const { colorScheme, setColorScheme } = useColorScheme();
+  const { theme, setTheme } = useThemeStore();
+  const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark" || theme === "DARK";
 
   // Local form state for academic profile
@@ -74,10 +75,6 @@ export default function ProfileScreen() {
   const [lastName, setLastName] = useState("");
   const [bio, setBio] = useState("");
   const [profileSuccessMsg, setProfileSuccessMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadTheme();
-  }, []);
 
   // 1. Fetch Academic Profile & Connected Account Details
   const { data: profile, isLoading: isProfileLoading } = useQuery<ProfileData>({
@@ -122,16 +119,27 @@ export default function ProfileScreen() {
     },
   });
 
-  // Mutation to update notification preferences
-  const notifMutation = useMutation({
-    mutationFn: async (updates: Partial<NotificationPreferences>) => {
-      const res = await apiClient.patch("/notifications/preferences/", updates);
-      return res.data;
+  // Coalesced optimistic mutation for notification preferences (350ms debounce + AbortController)
+  const notifCoalesced = useCoalescedMutation<
+    NotificationPreferences,
+    Partial<NotificationPreferences>
+  >({
+    queryKey: ["notification-preferences"],
+    mutationKey: ["notification-preferences"],
+    debounceMs: 350,
+    mutationFn: async (updates, signal) => {
+      const res = await apiClient.patch("/notifications/preferences/", updates, {
+        signal,
+      });
+      return res.data as NotificationPreferences;
     },
-    onSuccess: (data: NotificationPreferences) => {
-      queryClient.setQueryData(["notification-preferences"], data);
-      queryClient.invalidateQueries({ queryKey: ["notification-history"] });
-    },
+    applyOptimistic: (current, updates) => ({ ...current, ...updates }),
+    isNoOp: (confirmed, next) =>
+      confirmed.deadline_enabled === next.deadline_enabled &&
+      confirmed.lead_hours === next.lead_hours &&
+      confirmed.new_assignment === next.new_assignment,
+    onSettledSuccess: (data) => data,
+    invalidateKeys: [["notification-history"]],
     onError: () => {
       Alert.alert("Preference Error", "Could not save notification setting.");
     },
@@ -160,30 +168,12 @@ export default function ProfileScreen() {
   };
 
   const handleSelectTheme = (mode: ThemeMode) => {
-    const syncNative = (nativeMode: "light" | "dark" | "unspecified") => {
-      if (typeof Appearance.setColorScheme === "function") {
-        try {
-          Appearance.setColorScheme(nativeMode);
-        } catch {
-          // Ignore on unsupported platforms
-        }
-      }
-    };
-
-    if (mode === "SYSTEM") {
-      setColorScheme("system");
-      syncNative("unspecified");
-    } else if (mode === "DARK") {
-      setColorScheme("dark");
-      syncNative("dark");
-    } else {
-      setColorScheme("light");
-      syncNative("light");
-    }
+    if (mode === theme) return;
     setTheme(mode);
   };
 
   const handleSaveProfile = () => {
+    if (profileMutation.isPending) return;
     profileMutation.mutate({
       first_name: firstName.trim(),
       last_name: lastName.trim(),
@@ -325,7 +315,7 @@ export default function ProfileScreen() {
             </View>
             <Switch
               value={notifPrefs?.deadline_enabled ?? true}
-              onValueChange={(val) => notifMutation.mutate({ deadline_enabled: val })}
+              onValueChange={(val) => notifCoalesced.trigger({ deadline_enabled: val })}
               trackColor={{ false: "#cbd5e1", true: "#2563eb" }}
               thumbColor="#ffffff"
             />
@@ -343,7 +333,7 @@ export default function ProfileScreen() {
                   return (
                     <TouchableOpacity
                       key={opt.hours}
-                      onPress={() => notifMutation.mutate({ lead_hours: opt.hours })}
+                      onPress={() => notifCoalesced.trigger({ lead_hours: opt.hours })}
                       className={`flex-1 py-2 rounded-xl items-center border ${
                         isSelected
                           ? "bg-brand-600 border-brand-600"
@@ -376,7 +366,7 @@ export default function ProfileScreen() {
             </View>
             <Switch
               value={notifPrefs?.new_assignment ?? true}
-              onValueChange={(val) => notifMutation.mutate({ new_assignment: val })}
+              onValueChange={(val) => notifCoalesced.trigger({ new_assignment: val })}
               trackColor={{ false: "#cbd5e1", true: "#2563eb" }}
               thumbColor="#ffffff"
             />

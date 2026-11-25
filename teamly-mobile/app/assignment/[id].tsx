@@ -102,35 +102,70 @@ export default function AssignmentDetailScreen() {
     },
   });
 
-  // Mutation: Toggle subtask completion
+  // Mutation: Toggle subtask completion (optimistic)
   const toggleSubtaskMutation = useMutation({
     mutationFn: async (subtaskId: number) => {
       await apiClient.post(`/assignments/subtasks/${subtaskId}/toggle/`);
     },
-    onSuccess: () => {
+    onMutate: async (subtaskId) => {
+      await queryClient.cancelQueries({ queryKey: ["assignment", id] });
+      const previous = queryClient.getQueryData<AssignmentDetail>(["assignment", id]);
+      if (previous) {
+        queryClient.setQueryData<AssignmentDetail>(["assignment", id], {
+          ...previous,
+          subtasks: previous.subtasks.map((st) =>
+            st.id === subtaskId ? { ...st, is_done: !st.is_done } : st
+          ),
+        });
+      }
+      return { previous };
+    },
+    onError: (_err, _subtaskId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["assignment", id], context.previous);
+      }
+      Alert.alert("Error", "Could not toggle subtask status.");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["assignment", id] });
       queryClient.invalidateQueries({ queryKey: ["assignments"] });
-    },
-    onError: () => {
-      Alert.alert("Error", "Could not toggle subtask status.");
     },
   });
 
-  // Mutation: Adopt suggested AI subtask
+  // Mutation: Adopt suggested AI subtask (optimistic)
   const adoptSubtaskMutation = useMutation({
     mutationFn: async (title: string) => {
-      setAdoptingTitle(title);
       await apiClient.post(`/assignments/${id}/adopt-subtask/`, { title });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assignment", id] });
-      queryClient.invalidateQueries({ queryKey: ["assignments"] });
+    onMutate: async (title) => {
+      await queryClient.cancelQueries({ queryKey: ["assignment", id] });
+      const previous = queryClient.getQueryData<AssignmentDetail>(["assignment", id]);
+      if (previous) {
+        queryClient.setQueryData<AssignmentDetail>(["assignment", id], {
+          ...previous,
+          subtasks: [
+            ...previous.subtasks,
+            {
+              id: -Date.now(),
+              title,
+              is_done: false,
+              sort_order: previous.subtasks.length,
+            },
+          ],
+        });
+      }
+      return { previous };
     },
-    onError: () => {
+    onError: (_err, _title, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["assignment", id], context.previous);
+      }
       Alert.alert("Error", "Could not adopt suggested subtask.");
     },
     onSettled: () => {
       setAdoptingTitle(null);
+      queryClient.invalidateQueries({ queryKey: ["assignment", id] });
+      queryClient.invalidateQueries({ queryKey: ["assignments"] });
     },
   });
 
@@ -433,7 +468,9 @@ export default function AssignmentDetailScreen() {
             Generate a structured summary, key requirements, and checklist subtasks from these instructions.
           </Text>
           <TouchableOpacity
-            onPress={() => generateAiMutation.mutate()}
+            onPress={() => {
+              if (!generateAiMutation.isPending) generateAiMutation.mutate();
+            }}
             disabled={generateAiMutation.isPending}
             className="w-full bg-brand-600 py-3 rounded-2xl flex-row items-center justify-center"
           >
