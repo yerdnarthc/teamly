@@ -149,6 +149,15 @@ export default function RootLayout() {
                     contentStyle: { backgroundColor: bgThemeColor },
                   }}
                 />
+                <Stack.Screen
+                  name="modal/filter"
+                  options={{
+                    presentation: "transparentModal",
+                    animation: "fade",
+                    headerShown: false,
+                    contentStyle: { backgroundColor: "transparent" },
+                  }}
+                />
               </Stack>
             </View>
           </ThemeProvider>

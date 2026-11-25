@@ -236,3 +236,56 @@ class AssignmentApiTests(TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertTrue(Assignment.objects.filter(id=self.other_assignment.id).exists())
 
+    def test_search_assignments_by_keyword_q(self):
+        Assignment.objects.create(
+            user=self.user,
+            status=self.status_in_progress,
+            priority=self.priority_med,
+            title="Database Indexing Lab",
+            instructions="Benchmark B-tree vs hash index.",
+        )
+        url = reverse("api_v1_assignments:assignment-list")
+
+        # Match by title
+        resp_title = self.client.get(url, {"q": "sorting"})
+        self.assertEqual(resp_title.status_code, 200)
+        titles = [a["title"] for a in resp_title.data]
+        self.assertEqual(titles, ["Implement Sorting Algorithm"])
+
+        # Match by instructions
+        resp_instr = self.client.get(url, {"q": "B-tree"})
+        self.assertEqual(resp_instr.status_code, 200)
+        self.assertEqual([a["title"] for a in resp_instr.data], ["Database Indexing Lab"])
+
+        # Match by subject name
+        resp_subj = self.client.get(url, {"q": "CS 101"})
+        self.assertEqual(resp_subj.status_code, 200)
+        self.assertEqual([a["title"] for a in resp_subj.data], ["Implement Sorting Algorithm"])
+
+    def test_filter_assignments_combined_status_priority_and_subject(self):
+        Assignment.objects.create(
+            user=self.user,
+            status=self.status_in_progress,
+            priority=self.priority_med,
+            title="Database Indexing Lab",
+        )
+        url = reverse("api_v1_assignments:assignment-list")
+
+        resp = self.client.get(
+            url,
+            {
+                "status": "IN_PROGRESS",
+                "priority": "MEDIUM",
+                "q": "Indexing",
+            },
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual([a["title"] for a in resp.data], ["Database Indexing Lab"])
+
+        resp_subj = self.client.get(
+            url,
+            {"subject": self.subject.id, "status": "NOT_STARTED", "priority": "HIGH"},
+        )
+        self.assertEqual(resp_subj.status_code, 200)
+        self.assertEqual([a["title"] for a in resp_subj.data], ["Implement Sorting Algorithm"])
+

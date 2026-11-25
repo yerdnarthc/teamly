@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -30,6 +31,19 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         if upcoming == "true":
             qs = qs.exclude(status__code="COMPLETED").filter(due_at__isnull=False).order_by("due_at")
 
+        # Keyword search across title, instructions, and subject name
+        search_query = (
+            self.request.query_params.get("q")
+            or self.request.query_params.get("search")
+            or ""
+        ).strip()
+        if search_query:
+            qs = qs.filter(
+                Q(title__icontains=search_query)
+                | Q(instructions__icontains=search_query)
+                | Q(subject__name__icontains=search_query)
+            )
+
         # Filtering support for mobile
         status_code = self.request.query_params.get("status")
         if status_code:
@@ -41,7 +55,10 @@ class AssignmentViewSet(viewsets.ModelViewSet):
 
         priority_code = self.request.query_params.get("priority")
         if priority_code:
-            qs = qs.filter(priority__code=priority_code)
+            if priority_code in ("MED", "MEDIUM"):
+                qs = qs.filter(priority__code__in=["MED", "MEDIUM"])
+            else:
+                qs = qs.filter(priority__code=priority_code)
 
         return qs
 
