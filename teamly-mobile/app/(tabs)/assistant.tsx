@@ -22,6 +22,7 @@ import {
   Brain,
   Zap,
   CheckCircle2,
+  X,
 } from "lucide-react-native";
 import { apiClient } from "../../src/services/apiClient";
 import { useThemeStore } from "../../src/stores/themeStore";
@@ -90,6 +91,24 @@ export default function AiAssistantWorkspaceScreen() {
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
   const [analyzingId, setAnalyzingId] = useState<number | null>(null);
   const [adoptingKey, setAdoptingKey] = useState<string | null>(null);
+  const [feedbackToast, setFeedbackToast] = useState<string | null>(null);
+  const [recentlyAnalyzedId, setRecentlyAnalyzedId] = useState<number | null>(null);
+
+  const showFeedbackToast = (msg: string) => {
+    setFeedbackToast(msg);
+  };
+
+  React.useEffect(() => {
+    if (!feedbackToast) return;
+    const timer = setTimeout(() => setFeedbackToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [feedbackToast]);
+
+  React.useEffect(() => {
+    if (recentlyAnalyzedId === null) return;
+    const timer = setTimeout(() => setRecentlyAnalyzedId(null), 6000);
+    return () => clearTimeout(timer);
+  }, [recentlyAnalyzedId]);
 
   const {
     data: workspace,
@@ -107,11 +126,15 @@ export default function AiAssistantWorkspaceScreen() {
   const analyzeAllMutation = useMutation({
     mutationFn: async () => {
       const res = await apiClient.post("/assistant/analyze-all/");
-      return res.data;
+      return res.data as { analyzed_count: number; message: string };
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+    onSuccess: async (report) => {
+      await queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
       queryClient.invalidateQueries({ queryKey: ["assignments"] });
+      setSelectedSubjectId(null);
+      showFeedbackToast(
+        report.message || `Analyzed ${report.analyzed_count} assignment(s).`
+      );
     },
     onError: () => {
       Alert.alert("Analysis Failed", "Could not analyze pending assignments.");
@@ -121,12 +144,26 @@ export default function AiAssistantWorkspaceScreen() {
   const analyzeOneMutation = useMutation({
     mutationFn: async (assignmentId: number) => {
       setAnalyzingId(assignmentId);
-      const res = await apiClient.post(`/assistant/analyze/${assignmentId}/`);
+      const res = await apiClient.post<WorkspaceSummaryItem>(
+        `/assistant/analyze/${assignmentId}/`
+      );
       return res.data;
     },
-    onSuccess: (_data, assignmentId) => {
-      queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+    onSuccess: async (createdSummary, assignmentId) => {
+      await queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
       queryClient.invalidateQueries({ queryKey: ["assignment", String(assignmentId)] });
+      if (
+        selectedSubjectId !== null &&
+        createdSummary?.assignment?.subject?.id !== selectedSubjectId
+      ) {
+        setSelectedSubjectId(null);
+      }
+      if (createdSummary?.id) {
+        setRecentlyAnalyzedId(createdSummary.id);
+      }
+      showFeedbackToast(
+        `AI breakdown ready for "${createdSummary?.assignment?.title || "assignment"}".`
+      );
     },
     onError: () => {
       Alert.alert("Analysis Failed", "Could not generate AI breakdown.");
@@ -145,10 +182,11 @@ export default function AiAssistantWorkspaceScreen() {
       setAdoptingKey(`${assignmentId}:${title}`);
       await apiClient.post(`/assignments/${assignmentId}/adopt-subtask/`, { title });
     },
-    onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+    onSuccess: async (_data, vars) => {
+      await queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
       queryClient.invalidateQueries({ queryKey: ["assignments"] });
       queryClient.invalidateQueries({ queryKey: ["assignment", String(vars.assignmentId)] });
+      showFeedbackToast(`Added "${vars.title}" to your checklist.`);
     },
     onError: () => {
       Alert.alert("Adoption Failed", "Could not adopt suggested subtask.");
@@ -166,8 +204,12 @@ export default function AiAssistantWorkspaceScreen() {
     }) => {
       await apiClient.post(`/assistant/summaries/${summaryId}/feedback/`, { rating });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+      showFeedbackToast("Feedback saved. Thank you!");
+    },
+    onError: () => {
+      Alert.alert("Feedback Failed", "Could not save your rating.");
     },
   });
 
@@ -211,6 +253,25 @@ export default function AiAssistantWorkspaceScreen() {
       edges={["left", "right"]}
       className="flex-1 bg-slate-50 dark:bg-slate-900"
     >
+      {/* Confirmation Feedback Banner (pinned at top so it's always visible regardless of scroll) */}
+      {feedbackToast && (
+        <View className="mx-5 mt-3 mb-1 flex-row items-center justify-between bg-emerald-50 dark:bg-emerald-950/80 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800">
+          <View className="flex-row items-center flex-1 mr-2">
+            <CheckCircle2 size={18} color="#10b981" />
+            <Text className="text-xs font-semibold text-emerald-800 dark:text-emerald-200 ml-2.5 flex-1 leading-4">
+              {feedbackToast}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => setFeedbackToast(null)}
+            accessibilityLabel="Dismiss notification"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <X size={15} color="#10b981" />
+          </TouchableOpacity>
+        </View>
+      )}
+
       <ScrollView
         className="flex-1 px-5 pt-3"
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -450,12 +511,27 @@ export default function AiAssistantWorkspaceScreen() {
           filteredSummaries.map((item) => {
             const adoptedSet = new Set(item.adopted_titles);
             const subjectColor = item.assignment.subject?.color || "#3b82f6";
+            const isRecent = recentlyAnalyzedId === item.id;
 
             return (
               <View
                 key={item.id}
-                className="bg-white dark:bg-slate-800 rounded-3xl p-5 mb-4 border border-slate-200 dark:border-slate-700"
+                className={`bg-white dark:bg-slate-800 rounded-3xl p-5 mb-4 border ${
+                  isRecent
+                    ? "border-emerald-400 dark:border-emerald-500"
+                    : "border-slate-200 dark:border-slate-700"
+                }`}
               >
+                {isRecent && (
+                  <View className="flex-row items-center mb-2">
+                    <View className="bg-emerald-100 dark:bg-emerald-950/70 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 flex-row items-center">
+                      <Sparkles size={11} color="#10b981" />
+                      <Text className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 ml-1">
+                        Just Analyzed
+                      </Text>
+                    </View>
+                  </View>
+                )}
                 {/* Top Metadata Row: Course Pill (truncated) + Priority/Status */}
                 <View className="flex-row items-center justify-between mb-2.5">
                   <View className="flex-1 mr-2">

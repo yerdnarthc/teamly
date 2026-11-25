@@ -139,8 +139,8 @@ export default function AssignmentDetailScreen() {
     mutationFn: async () => {
       await apiClient.post(`/assistant/analyze/${id}/`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assignment", id] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["assignment", id] });
       queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
     },
     onError: () => {
