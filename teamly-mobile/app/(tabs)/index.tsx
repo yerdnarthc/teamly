@@ -138,6 +138,7 @@ export default function AssignmentsFeedScreen() {
       queryClient.invalidateQueries({ queryKey: ["workload-metrics"] });
       queryClient.invalidateQueries({ queryKey: ["subjects"] });
       queryClient.invalidateQueries({ queryKey: ["academic-terms"] });
+      queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
       setSyncToast(report.message);
       setTimeout(() => setSyncToast(null), 5000);
     },

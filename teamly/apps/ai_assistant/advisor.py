@@ -128,3 +128,99 @@ def adopt_suggested_subtask(assignment: Assignment, suggestion_title: str) -> Su
         defaults={"is_done": False},
     )
     return subtask
+
+
+def estimate_assignment_study_profile(assignment: Assignment, ai_summary: AiSummary) -> dict:
+    """
+    Computes workload complexity and estimated study time for an analyzed assignment
+    using its extracted requirements, subtasks, and priority rank.
+    """
+    requirements = ai_summary.requirements or []
+    suggestions = ai_summary.suggested_subtasks or []
+    incomplete_subtasks = sum(1 for s in assignment.subtasks.all() if not s.is_done)
+
+    item_count = max(len(requirements), len(suggestions), incomplete_subtasks, 1)
+    priority_rank = assignment.priority.rank if assignment.priority_id else 2
+
+    estimated_minutes = min(240, max(20, item_count * 20 + (priority_rank * 10)))
+
+    if priority_rank >= 4 or (priority_rank >= 3 and item_count >= 3) or item_count >= 5:
+        complexity = "High"
+        study_tip = "Split into 2 focused 30-min blocks and tackle core requirements first."
+    elif priority_rank >= 2 or item_count >= 3:
+        complexity = "Moderate"
+        study_tip = "Complete in one focused 45-min study session before starting new tasks."
+    else:
+        complexity = "Light"
+        study_tip = "Quick win — knock this out in a single short sprint."
+
+    return {
+        "complexity": complexity,
+        "estimated_minutes": estimated_minutes,
+        "study_tip": study_tip,
+    }
+
+
+def analyze_pending_assignments(user) -> list[AiSummary]:
+    """Analyzes all active assignments for a user that do not yet have an AiSummary."""
+    pending = (
+        Assignment.objects.filter(user=user)
+        .exclude(status__code="COMPLETED")
+        .filter(ai_summary__isnull=True)
+        .order_by("-priority__rank", "due_at")
+    )
+    created = []
+    for assignment in pending:
+        created.append(analyze_assignment(assignment))
+    return created
+
+
+def build_workspace_insights(
+    summaries_with_profiles: list[tuple[AiSummary, dict]],
+    unanalyzed_count: int,
+) -> dict:
+    """Aggregates cross-course AI workload complexity and study-time recommendations."""
+    analyzed_count = len(summaries_with_profiles)
+    total_suggested_tasks = sum(
+        len(summary.suggested_subtasks or []) for summary, _ in summaries_with_profiles
+    )
+    active_items = [
+        (summary, profile)
+        for summary, profile in summaries_with_profiles
+        if summary.assignment.status.code != "COMPLETED"
+    ]
+    estimated_total_minutes = sum(
+        profile["estimated_minutes"] for _, profile in active_items
+    )
+
+    if estimated_total_minutes >= 180 or len(active_items) >= 5:
+        complexity_level = "Heavy"
+    elif estimated_total_minutes >= 60 or len(active_items) >= 2:
+        complexity_level = "Balanced"
+    else:
+        complexity_level = "Light"
+
+    if active_items:
+        top_summary, top_profile = active_items[0]
+        hours = round(estimated_total_minutes / 60, 1)
+        study_recommendation = (
+            f"Prioritize '{top_summary.assignment.title}' ({top_profile['complexity']} complexity, "
+            f"~{top_profile['estimated_minutes']}m). Total active study load is ~{hours}h across "
+            f"{len(active_items)} analyzed coursework item(s)."
+        )
+    elif unanalyzed_count > 0:
+        study_recommendation = (
+            f"You have {unanalyzed_count} active assignment(s) ready for AI breakdown. "
+            "Tap 'Analyze All Active' to generate your study plan."
+        )
+    else:
+        study_recommendation = "All caught up! Sync or add assignments to generate study breakdowns."
+
+    return {
+        "analyzed_count": analyzed_count,
+        "pending_analysis_count": unanalyzed_count,
+        "total_suggested_tasks": total_suggested_tasks,
+        "estimated_total_minutes": estimated_total_minutes,
+        "complexity_level": complexity_level,
+        "study_recommendation": study_recommendation,
+    }

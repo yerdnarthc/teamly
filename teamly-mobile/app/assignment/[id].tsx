@@ -135,6 +135,19 @@ export default function AssignmentDetailScreen() {
     );
   };
 
+  const generateAiMutation = useMutation({
+    mutationFn: async () => {
+      await apiClient.post(`/assistant/analyze/${id}/`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["assignment", id] });
+      queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+    },
+    onError: () => {
+      Alert.alert("Analysis Failed", "Could not generate AI breakdown right now.");
+    },
+  });
+
   if (isLoading) {
     return (
       <View className="flex-1 justify-center items-center bg-slate-50 dark:bg-slate-900">
@@ -277,7 +290,7 @@ export default function AssignmentDetailScreen() {
       </View>
 
       {/* AI Assistant Section */}
-      {assignment.ai_summary && (
+      {assignment.ai_summary ? (
         <View className="bg-brand-50 dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-brand-200 dark:border-brand-800/60">
           <View className="flex-row items-center mb-3">
             <View className="w-8 h-8 rounded-full bg-brand-500 justify-center items-center mr-2">
@@ -337,6 +350,36 @@ export default function AssignmentDetailScreen() {
               </View>
             );
           })}
+        </View>
+      ) : (
+        <View className="bg-white dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-slate-200 dark:border-slate-700">
+          <View className="flex-row items-center mb-2">
+            <View className="w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 justify-center items-center mr-2.5">
+              <Sparkles size={16} color={isDark ? "#60a5fa" : "#2563eb"} />
+            </View>
+            <Text className="text-base font-bold text-slate-900 dark:text-white">
+              AI Study Assistant
+            </Text>
+          </View>
+          <Text className="text-xs text-slate-500 dark:text-slate-400 mb-3.5 leading-5">
+            Generate a structured summary, key requirements, and checklist subtasks from these instructions.
+          </Text>
+          <TouchableOpacity
+            onPress={() => generateAiMutation.mutate()}
+            disabled={generateAiMutation.isPending}
+            className="w-full bg-brand-600 py-3 rounded-2xl flex-row items-center justify-center"
+          >
+            {generateAiMutation.isPending ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <>
+                <Sparkles size={16} color="#ffffff" />
+                <Text className="text-white font-semibold text-sm ml-2">
+                  Generate AI Breakdown
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
       )}
 
