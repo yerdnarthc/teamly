@@ -161,33 +161,37 @@ export default function AssignmentsFeedScreen() {
         onPress={() => router.push(`/assignment/${item.id}`)}
         className="bg-white dark:bg-slate-800 p-4 rounded-2xl mb-3 border border-slate-100 dark:border-slate-700"
       >
-        <View className="flex-row justify-between items-start mb-2">
-          {item.subject ? (
-            <View
-              className="px-2.5 py-1 rounded-full flex-row items-center"
-              style={{ backgroundColor: `${subjectColor}15` }}
-            >
+        <View className="flex-row justify-between items-center mb-2">
+          <View className="flex-1 mr-2">
+            {item.subject ? (
               <View
-                className="w-2 h-2 rounded-full mr-1.5"
-                style={{ backgroundColor: subjectColor }}
-              />
-              <Text
-                className="text-xs font-semibold"
-                style={{ color: subjectColor }}
+                className="px-2.5 py-1 rounded-full flex-row items-center self-start max-w-full"
+                style={{ backgroundColor: `${subjectColor}15` }}
               >
-                {item.subject.name}
-              </Text>
-            </View>
-          ) : (
-            <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">
-              <Text className="text-xs text-slate-600 dark:text-slate-300 font-medium">
-                General
-              </Text>
-            </View>
-          )}
+                <View
+                  className="w-2 h-2 rounded-full mr-1.5 flex-shrink-0"
+                  style={{ backgroundColor: subjectColor }}
+                />
+                <Text
+                  className="text-xs font-semibold flex-shrink"
+                  style={{ color: subjectColor }}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {item.subject.name}
+                </Text>
+              </View>
+            ) : (
+              <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full self-start">
+                <Text className="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                  General
+                </Text>
+              </View>
+            )}
+          </View>
 
           <View
-            className={`px-2.5 py-0.5 rounded-full ${
+            className={`px-2.5 py-0.5 rounded-full flex-shrink-0 ${
               isCompleted
                 ? "bg-green-100 dark:bg-green-950/60"
                 : isHighOrUrgent

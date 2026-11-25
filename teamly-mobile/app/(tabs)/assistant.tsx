@@ -456,36 +456,39 @@ export default function AiAssistantWorkspaceScreen() {
                 key={item.id}
                 className="bg-white dark:bg-slate-800 rounded-3xl p-5 mb-4 border border-slate-200 dark:border-slate-700"
               >
-                {/* Top Metadata Row */}
+                {/* Top Metadata Row: Course Pill (truncated) + Priority/Status */}
                 <View className="flex-row items-center justify-between mb-2.5">
-                  {item.assignment.subject ? (
-                    <View
-                      className="px-2.5 py-1 rounded-full flex-row items-center"
-                      style={{ backgroundColor: `${subjectColor}18` }}
-                    >
+                  <View className="flex-1 mr-2">
+                    {item.assignment.subject ? (
                       <View
-                        className="w-2 h-2 rounded-full mr-1.5"
-                        style={{ backgroundColor: subjectColor }}
-                      />
-                      <Text
-                        className="text-xs font-semibold"
-                        style={{ color: subjectColor }}
+                        className="px-2.5 py-1 rounded-full flex-row items-center self-start max-w-full"
+                        style={{ backgroundColor: `${subjectColor}18` }}
                       >
-                        {item.assignment.subject.name}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">
-                      <Text className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                        General
-                      </Text>
-                    </View>
-                  )}
+                        <View
+                          className="w-2 h-2 rounded-full mr-1.5 flex-shrink-0"
+                          style={{ backgroundColor: subjectColor }}
+                        />
+                        <Text
+                          className="text-xs font-semibold flex-shrink"
+                          style={{ color: subjectColor }}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {item.assignment.subject.name}
+                        </Text>
+                      </View>
+                    ) : (
+                      <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full self-start">
+                        <Text className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                          General
+                        </Text>
+                      </View>
+                    )}
+                  </View>
 
-                  <View className="flex-row items-center bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">
-                    <Clock size={11} color="#64748b" />
-                    <Text className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 ml-1">
-                      ~{formatDuration(item.estimated_minutes)} · {item.complexity}
+                  <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full flex-shrink-0">
+                    <Text className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                      {item.assignment.status.label}
                     </Text>
                   </View>
                 </View>
@@ -511,6 +514,22 @@ export default function AiAssistantWorkspaceScreen() {
                 <Text className="text-[11px] font-medium text-brand-700 dark:text-brand-300 mb-3">
                   Tip: {item.study_tip}
                 </Text>
+
+                {/* Dedicated Study Effort Metadata Row */}
+                <View className="flex-row items-center flex-wrap gap-2 mb-3">
+                  <View className="flex-row items-center bg-slate-100 dark:bg-slate-700/80 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-600">
+                    <Clock size={12} color={isDark ? "#94a3b8" : "#64748b"} />
+                    <Text className="text-xs font-semibold text-slate-700 dark:text-slate-200 ml-1.5">
+                      ~{formatDuration(item.estimated_minutes)} · {item.complexity}
+                    </Text>
+                  </View>
+
+                  <View className="bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1 rounded-xl">
+                    <Text className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                      {item.assignment.completed_subtask_count}/{item.assignment.subtask_count} subtasks done
+                    </Text>
+                  </View>
+                </View>
 
                 {/* Suggested Subtasks */}
                 {item.suggested_subtasks.length > 0 && (
