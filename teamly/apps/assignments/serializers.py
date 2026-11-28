@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.academic.models import Subject
 from apps.ai_assistant.models import AiSummary
 from .models import Assignment, Priority, Status, Subtask
+from .querysets import expand_priority_codes
 
 
 class StatusSerializer(serializers.ModelSerializer):
@@ -97,9 +98,11 @@ class AssignmentDetailSerializer(serializers.ModelSerializer):
 
 
 class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
+    EXTERNAL_TEAMS_FIELDS = ("title", "instructions", "due_at")
+
     subject_id = serializers.IntegerField(required=False, allow_null=True)
-    status_code = serializers.CharField(required=False)
-    priority_code = serializers.CharField(required=False)
+    status_code = serializers.CharField(required=False, write_only=True)
+    priority_code = serializers.CharField(required=False, write_only=True)
 
     class Meta:
         model = Assignment
@@ -113,6 +116,16 @@ class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
             "priority_code",
         )
 
+    def validate(self, attrs):
+        if self.instance is not None and self.instance.source == Assignment.Source.TEAMS:
+            errors = {}
+            for field in self.EXTERNAL_TEAMS_FIELDS:
+                if field in attrs and attrs[field] != getattr(self.instance, field):
+                    errors[field] = "External Microsoft Teams fields cannot be modified."
+            if errors:
+                raise serializers.ValidationError(errors)
+        return attrs
+
     def validate_status_code(self, value):
         try:
             return Status.objects.get(code=value)
@@ -120,10 +133,10 @@ class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"Invalid status code: {value}")
 
     def validate_priority_code(self, value):
-        try:
-            return Priority.objects.get(code=value)
-        except Priority.DoesNotExist:
+        priority = Priority.objects.filter(code__in=expand_priority_codes(value)).first()
+        if priority is None:
             raise serializers.ValidationError(f"Invalid priority code: {value}")
+        return priority
 
     def validate_subject_id(self, value):
         if value is None:
@@ -137,7 +150,10 @@ class AssignmentCreateUpdateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context["request"].user
         status = validated_data.pop("status_code", None) or Status.objects.get(code="NOT_STARTED")
-        priority = validated_data.pop("priority_code", None) or Priority.objects.get(code="MED")
+        priority = (
+            validated_data.pop("priority_code", None)
+            or Priority.objects.filter(code__in=["MEDIUM", "MED"]).first()
+        )
         subject = validated_data.pop("subject_id", None)
 
         return Assignment.objects.create(

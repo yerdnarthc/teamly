@@ -2,7 +2,7 @@ import React from "react";
 import { View, ActivityIndicator } from "react-native";
 import { Tabs, Redirect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { CheckSquare, Calendar, User } from "lucide-react-native";
+import { CheckSquare, Calendar, Sparkles, User } from "lucide-react-native";
 import { useColorScheme } from "nativewind";
 import { useThemeStore } from "../../src/stores/themeStore";
 import { useAuthStore } from "../../src/stores/authStore";
@@ -93,6 +93,14 @@ export default function TabLayout() {
             title: "Upcoming",
             headerTitle: "Upcoming Deadlines",
             tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="assistant"
+          options={{
+            title: "AI Study",
+            headerTitle: "AI Assistant",
+            tabBarIcon: ({ color, size }) => <Sparkles size={size} color={color} />,
           }}
         />
         <Tabs.Screen

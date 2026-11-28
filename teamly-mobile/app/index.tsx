@@ -27,7 +27,7 @@ export default function HomeScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="w-16 h-16 bg-brand-500 rounded-2xl justify-center items-center mb-6 shadow-md shadow-blue-500/20">
+        <View className="w-16 h-16 bg-brand-500 rounded-none justify-center items-center mb-6 shadow-md shadow-blue-500/20">
           <Sparkles size={32} color="#ffffff" />
         </View>
 
@@ -41,7 +41,7 @@ export default function HomeScreen() {
         <View className="w-full space-y-4 max-w-sm">
           {isAuthenticated ? (
             <>
-              <View className="flex-row items-center justify-center p-3.5 bg-green-50 dark:bg-green-950/40 rounded-2xl mb-4 border border-green-200 dark:border-green-800">
+              <View className="flex-row items-center justify-center p-3.5 bg-green-50 dark:bg-green-950/40 rounded-none mb-4 border border-green-200 dark:border-green-800">
                 <CheckCircle2 size={18} color="#16a34a" />
                 <Text className="text-green-700 dark:text-green-300 font-medium ml-2">
                   Signed in securely with JWT
@@ -50,7 +50,7 @@ export default function HomeScreen() {
 
               <TouchableOpacity
                 onPress={() => router.push("/(tabs)")}
-                className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm mb-2.5"
+                className="w-full bg-brand-600 py-4 rounded-none items-center shadow-sm mb-2.5"
               >
                 <Text className="text-white font-semibold text-lg">Go to Dashboard</Text>
               </TouchableOpacity>
@@ -60,7 +60,7 @@ export default function HomeScreen() {
                   logout();
                   queryClient.clear();
                 }}
-                className="w-full bg-slate-200 dark:bg-slate-800 py-3.5 rounded-2xl items-center"
+                className="w-full bg-slate-200 dark:bg-slate-800 py-3.5 rounded-none items-center"
               >
                 <Text className="text-slate-700 dark:text-slate-200 font-medium">Log out</Text>
               </TouchableOpacity>
@@ -69,14 +69,14 @@ export default function HomeScreen() {
             <>
               <TouchableOpacity
                 onPress={() => router.push("/login")}
-                className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm mb-3"
+                className="w-full bg-brand-600 py-4 rounded-none items-center shadow-sm mb-3"
               >
                 <Text className="text-white font-semibold text-lg">Sign In</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => router.push("/register")}
-                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-3.5 rounded-2xl items-center mb-3 shadow-sm"
+                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 py-3.5 rounded-none items-center mb-3 shadow-sm"
               >
                 <Text className="text-slate-800 dark:text-slate-100 font-semibold text-base">
                   Create Student Account

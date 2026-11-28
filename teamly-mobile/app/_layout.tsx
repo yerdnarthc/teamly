@@ -1,11 +1,10 @@
 import "../global.css";
 import React, { useEffect } from "react";
-import { View } from "react-native";
-import { Stack } from "expo-router";
+import { Appearance, View } from "react-native";
+import { Stack, DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { useColorScheme } from "nativewind";
 import { useAuthStore } from "../src/stores/authStore";
 import { useThemeStore } from "../src/stores/themeStore";
@@ -47,23 +46,38 @@ const TeamlyLightTheme = {
 
 export default function RootLayout() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const theme = useThemeStore((state) => state.theme);
   const loadTheme = useThemeStore((state) => state.loadTheme);
   const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
     checkAuth();
-    loadTheme();
   }, []);
 
   useEffect(() => {
-    if (theme === "SYSTEM") {
-      setColorScheme("system");
-    } else if (theme === "DARK") {
-      setColorScheme("dark");
-    } else if (theme === "LIGHT") {
-      setColorScheme("light");
+    if (isAuthenticated) {
+      loadTheme();
     }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const nativeMode =
+      theme === "SYSTEM" ? "unspecified" : theme === "DARK" ? "dark" : "light";
+    setColorScheme(theme === "SYSTEM" ? "system" : theme === "DARK" ? "dark" : "light");
+
+    // Defer native Appearance override so the UI button & NativeWind paint on the next frame
+    const timer = setTimeout(() => {
+      if (typeof Appearance.setColorScheme === "function") {
+        try {
+          Appearance.setColorScheme(nativeMode);
+        } catch {
+          // Ignore on platforms where native override isn't supported
+        }
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [theme]);
 
   const isDark = colorScheme === "dark" || theme === "DARK";
@@ -137,7 +151,44 @@ export default function RootLayout() {
                   }}
                 />
                 <Stack.Screen
+                  name="assignment/[id]/edit"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
                   name="assignment/new"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
+                  name="modal/filter"
+                  options={{
+                    presentation: "transparentModal",
+                    animation: "fade",
+                    headerShown: false,
+                    contentStyle: { backgroundColor: "transparent" },
+                  }}
+                />
+                <Stack.Screen
+                  name="academic/index"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
+                  name="sync/history"
+                  options={{
+                    headerShown: false,
+                    contentStyle: { backgroundColor: bgThemeColor },
+                  }}
+                />
+                <Stack.Screen
+                  name="notifications/history"
                   options={{
                     headerShown: false,
                     contentStyle: { backgroundColor: bgThemeColor },

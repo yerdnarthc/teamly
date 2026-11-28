@@ -27,6 +27,7 @@ urlpatterns = [
     path("api/v1/notifications/", include("apps.notifications.urls_api")),
     path("api/v1/assignments/", include("apps.assignments.urls_api")),
     path("api/v1/academic/", include("apps.academic.urls_api")),
+    path("api/v1/assistant/", include("apps.ai_assistant.urls_api")),
     path("api/v1/sync/", include("apps.sync.urls_api")),
     # SSR Web Endpoints (Coexisting Hybrid)
     path("accounts/", include("apps.accounts.urls")),

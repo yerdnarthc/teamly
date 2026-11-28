@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Linking,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -14,9 +15,11 @@ import {
   CheckCircle2,
   Circle,
   Calendar,
-  BookOpen,
   Plus,
   ArrowLeft,
+  Pencil,
+  Trash2,
+  ExternalLink,
 } from "lucide-react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from "nativewind";
@@ -42,12 +45,42 @@ interface AssignmentDetail {
   title: string;
   instructions: string;
   due_at: string | null;
+  source: string;
+  teams_url: string;
   status: { id: number; code: string; label: string };
   priority: { id: number; code: string; rank: number };
   subject: { id: number; name: string; color: string } | null;
   subtasks: Subtask[];
   ai_summary: AiSummary | null;
 }
+
+const PRIORITY_BADGE: Record<string, { label: string; bg: string; text: string }> = {
+  URGENT: {
+    label: "Urgent",
+    bg: "bg-rose-100 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800",
+    text: "text-rose-700 dark:text-rose-300",
+  },
+  HIGH: {
+    label: "High",
+    bg: "bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-900",
+    text: "text-rose-700 dark:text-rose-300",
+  },
+  MEDIUM: {
+    label: "Medium",
+    bg: "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800",
+    text: "text-amber-700 dark:text-amber-300",
+  },
+  MED: {
+    label: "Medium",
+    bg: "bg-amber-50 dark:bg-amber-950/50 border-amber-200 dark:border-amber-800",
+    text: "text-amber-700 dark:text-amber-300",
+  },
+  LOW: {
+    label: "Low",
+    bg: "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700",
+    text: "text-slate-600 dark:text-slate-300",
+  },
+};
 
 export default function AssignmentDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -69,35 +102,115 @@ export default function AssignmentDetailScreen() {
     },
   });
 
-  // Mutation: Toggle subtask completion
+  // Mutation: Toggle subtask completion (optimistic)
   const toggleSubtaskMutation = useMutation({
     mutationFn: async (subtaskId: number) => {
       await apiClient.post(`/assignments/subtasks/${subtaskId}/toggle/`);
     },
-    onSuccess: () => {
+    onMutate: async (subtaskId) => {
+      await queryClient.cancelQueries({ queryKey: ["assignment", id] });
+      const previous = queryClient.getQueryData<AssignmentDetail>(["assignment", id]);
+      if (previous) {
+        queryClient.setQueryData<AssignmentDetail>(["assignment", id], {
+          ...previous,
+          subtasks: previous.subtasks.map((st) =>
+            st.id === subtaskId ? { ...st, is_done: !st.is_done } : st
+          ),
+        });
+      }
+      return { previous };
+    },
+    onError: (_err, _subtaskId, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["assignment", id], context.previous);
+      }
+      Alert.alert("Error", "Could not toggle subtask status.");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["assignment", id] });
       queryClient.invalidateQueries({ queryKey: ["assignments"] });
-    },
-    onError: () => {
-      Alert.alert("Error", "Could not toggle subtask status.");
     },
   });
 
-  // Mutation: Adopt suggested AI subtask
+  // Mutation: Adopt suggested AI subtask (optimistic)
   const adoptSubtaskMutation = useMutation({
     mutationFn: async (title: string) => {
-      setAdoptingTitle(title);
       await apiClient.post(`/assignments/${id}/adopt-subtask/`, { title });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assignment", id] });
-      queryClient.invalidateQueries({ queryKey: ["assignments"] });
+    onMutate: async (title) => {
+      await queryClient.cancelQueries({ queryKey: ["assignment", id] });
+      const previous = queryClient.getQueryData<AssignmentDetail>(["assignment", id]);
+      if (previous) {
+        queryClient.setQueryData<AssignmentDetail>(["assignment", id], {
+          ...previous,
+          subtasks: [
+            ...previous.subtasks,
+            {
+              id: -Date.now(),
+              title,
+              is_done: false,
+              sort_order: previous.subtasks.length,
+            },
+          ],
+        });
+      }
+      return { previous };
     },
-    onError: () => {
+    onError: (_err, _title, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["assignment", id], context.previous);
+      }
       Alert.alert("Error", "Could not adopt suggested subtask.");
     },
     onSettled: () => {
       setAdoptingTitle(null);
+      queryClient.invalidateQueries({ queryKey: ["assignment", id] });
+      queryClient.invalidateQueries({ queryKey: ["assignments"] });
+    },
+  });
+
+  // Mutation: Delete assignment
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await apiClient.delete(`/assignments/${id}/`);
+    },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ["assignment", id] });
+      queryClient.invalidateQueries({ queryKey: ["assignments"] });
+      queryClient.invalidateQueries({ queryKey: ["assignments", "upcoming"] });
+      queryClient.invalidateQueries({ queryKey: ["workload-metrics"] });
+      router.back();
+    },
+    onError: () => {
+      Alert.alert("Delete Failed", "Could not delete this assignment.");
+    },
+  });
+
+  const handleConfirmDelete = () => {
+    Alert.alert(
+      "Delete Assignment",
+      `Permanently remove "${assignment?.title || "this assignment"}" and all subtasks?`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => deleteMutation.mutate(),
+        },
+      ]
+    );
+  };
+
+  const generateAiMutation = useMutation({
+    mutationFn: async () => {
+      await apiClient.post(`/assistant/analyze/${id}/`);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["assignment", id] });
+      queryClient.invalidateQueries({ queryKey: ["ai-workspace"] });
+    },
+    onError: () => {
+      Alert.alert("Analysis Failed", "Could not generate AI breakdown right now.");
     },
   });
 
@@ -129,35 +242,89 @@ export default function AssignmentDetailScreen() {
         contentContainerStyle={{ paddingBottom: 60 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Back navigation header */}
+        {/* Back navigation & action header */}
         <View className="flex-row items-center justify-between mb-4">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 justify-center items-center shadow-sm border border-slate-200 dark:border-slate-700"
+            accessibilityLabel="Go back"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="w-11 h-11 rounded-none bg-white dark:bg-slate-800 justify-center items-center shadow-sm border border-slate-200 dark:border-slate-700"
           >
             <ArrowLeft size={18} color={isDark ? "#f8fafc" : "#0f172a"} />
           </TouchableOpacity>
+
+          <View className="flex-row items-center gap-2.5">
+            <TouchableOpacity
+              onPress={() => router.push(`/assignment/${assignment.id}/edit`)}
+              disabled={deleteMutation.isPending}
+              accessibilityLabel="Edit assignment"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              className="flex-row items-center px-3.5 h-11 rounded-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+            >
+              <Pencil size={15} color={isDark ? "#f8fafc" : "#0f172a"} />
+              <Text className="text-xs font-semibold text-slate-900 dark:text-slate-100 ml-1.5">
+                Edit
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handleConfirmDelete}
+              disabled={deleteMutation.isPending}
+              accessibilityLabel="Delete assignment"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              className="w-11 h-11 rounded-none bg-rose-50 dark:bg-rose-950/50 justify-center items-center border border-rose-200 dark:border-rose-900"
+            >
+              {deleteMutation.isPending ? (
+                <ActivityIndicator size="small" color="#e11d48" />
+              ) : (
+                <Trash2 size={16} color="#e11d48" />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Subject & Status */}
+        {/* Subject, Priority & Status */}
         <View className="flex-row items-center justify-between mb-3">
-          {assignment.subject && (
-            <View
-              className="px-3 py-1 rounded-full"
-              style={{ backgroundColor: `${assignment.subject.color}15` }}
-            >
-              <Text
-                className="text-xs font-bold"
-                style={{ color: assignment.subject.color }}
+          <View className="flex-1 mr-2">
+            {assignment.subject ? (
+              <View
+                className="px-3 py-1 rounded-none self-start max-w-full"
+                style={{ backgroundColor: `${assignment.subject.color}18` }}
               >
-                {assignment.subject.name}
+                <Text
+                  className="text-xs font-bold"
+                  style={{ color: assignment.subject.color }}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
+                  {assignment.subject.name}
+                </Text>
+              </View>
+            ) : (
+              <View className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-none self-start">
+                <Text className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  General
+                </Text>
+              </View>
+            )}
+          </View>
+
+          <View className="flex-row items-center gap-1.5 flex-shrink-0">
+            {(() => {
+              const pBadge = PRIORITY_BADGE[assignment.priority?.code] || PRIORITY_BADGE.MEDIUM;
+              return (
+                <View className={`px-2.5 py-1 rounded-none border ${pBadge.bg}`}>
+                  <Text className={`text-xs font-semibold ${pBadge.text}`}>
+                    {pBadge.label}
+                  </Text>
+                </View>
+              );
+            })()}
+            <View className="bg-brand-50 dark:bg-brand-950/60 px-3 py-1 rounded-none border border-brand-200 dark:border-brand-800">
+              <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300">
+                {assignment.status.label}
               </Text>
             </View>
-          )}
-          <View className="bg-blue-50 dark:bg-blue-950/60 px-3 py-1 rounded-full border border-blue-200 dark:border-blue-800">
-            <Text className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-              {assignment.status.label}
-            </Text>
           </View>
         </View>
 
@@ -166,16 +333,30 @@ export default function AssignmentDetailScreen() {
         {assignment.title}
       </Text>
 
-      {/* Deadline */}
-      <View className="flex-row items-center mb-6">
-        <Calendar size={16} color="#64748b" />
-        <Text className="text-sm text-slate-500 ml-2">
-          Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : "No deadline"}
-        </Text>
+      {/* Deadline & Teams Link */}
+      <View className="flex-row items-center justify-between flex-wrap gap-2 mb-6">
+        <View className="flex-row items-center">
+          <Calendar size={16} color="#64748b" />
+          <Text className="text-sm text-slate-500 dark:text-slate-400 ml-2">
+            Due: {assignment.due_at ? new Date(assignment.due_at).toLocaleString() : "No deadline"}
+          </Text>
+        </View>
+
+        {assignment.teams_url ? (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(assignment.teams_url).catch(() => {})}
+            className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3 py-1.5 rounded-none border border-brand-200 dark:border-brand-800"
+          >
+            <ExternalLink size={13} color={isDark ? "#93c5fd" : "#2563eb"} />
+            <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 ml-1.5">
+              Open in Teams
+            </Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       {/* Subtask Checklist Card */}
-      <View className="bg-white dark:bg-slate-800 p-5 rounded-3xl mb-6 shadow-sm border border-slate-100 dark:border-slate-700">
+      <View className="bg-white dark:bg-slate-800 p-5 rounded-none mb-6 shadow-sm border border-slate-100 dark:border-slate-700">
         <Text className="text-lg font-bold text-slate-900 dark:text-white mb-3">
           Checklist ({assignment.subtasks.filter((s) => s.is_done).length}/
           {assignment.subtasks.length})
@@ -212,10 +393,10 @@ export default function AssignmentDetailScreen() {
       </View>
 
       {/* AI Assistant Section */}
-      {assignment.ai_summary && (
-        <View className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-blue-100 dark:border-blue-900/40">
+      {assignment.ai_summary ? (
+        <View className="bg-brand-50 dark:bg-slate-800 p-5 rounded-none mb-8 border border-brand-200 dark:border-brand-800/60">
           <View className="flex-row items-center mb-3">
-            <View className="w-8 h-8 rounded-full bg-brand-500 justify-center items-center mr-2">
+            <View className="w-8 h-8 rounded-none bg-brand-500 justify-center items-center mr-2">
               <Sparkles size={16} color="#ffffff" />
             </View>
             <Text className="text-base font-bold text-slate-900 dark:text-white">
@@ -226,6 +407,21 @@ export default function AssignmentDetailScreen() {
           <Text className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
             {assignment.ai_summary.summary}
           </Text>
+
+          {assignment.ai_summary.deadlines && assignment.ai_summary.deadlines.length > 0 && (
+            <View className="flex-row flex-wrap gap-1.5 mb-4">
+              {assignment.ai_summary.deadlines.map((dl, dlIdx) => (
+                <View
+                  key={dlIdx}
+                  className="px-2.5 py-1 rounded-none bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800"
+                >
+                  <Text className="text-xs font-medium text-amber-800 dark:text-amber-300">
+                    Date hint: {dl}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
 
           {/* Suggested Subtasks with One-Click Adoption */}
           <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
@@ -250,14 +446,14 @@ export default function AssignmentDetailScreen() {
                 </Text>
 
                 {isAlreadyAdopted ? (
-                  <View className="bg-green-100 dark:bg-green-950/60 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-800">
+                  <View className="bg-green-100 dark:bg-green-950/60 px-2.5 py-1 rounded-none border border-green-200 dark:border-green-800">
                     <Text className="text-xs font-semibold text-green-700 dark:text-green-300">✓ In Checklist</Text>
                   </View>
                 ) : (
                   <TouchableOpacity
                     onPress={() => adoptSubtaskMutation.mutate(suggestion)}
                     disabled={isAdopting}
-                    className="bg-brand-600 px-3 py-1.5 rounded-full flex-row items-center"
+                    className="bg-brand-600 px-3 py-1.5 rounded-none flex-row items-center"
                   >
                     {isAdopting ? (
                       <ActivityIndicator size="small" color="#ffffff" />
@@ -272,11 +468,47 @@ export default function AssignmentDetailScreen() {
               </View>
             );
           })}
+
+          <Text className="text-[11px] text-slate-500 dark:text-slate-400 mt-3 pt-3 border-t border-blue-100/60 dark:border-slate-700 leading-4">
+            AI Disclaimer: Generated as a study aid only — verify against the original professor instructions and official deadline.
+          </Text>
+        </View>
+      ) : (
+        <View className="bg-white dark:bg-slate-800 p-5 rounded-none mb-8 border border-slate-200 dark:border-slate-700">
+          <View className="flex-row items-center mb-2">
+            <View className="w-8 h-8 rounded-none bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 justify-center items-center mr-2.5">
+              <Sparkles size={16} color={isDark ? "#60a5fa" : "#2563eb"} />
+            </View>
+            <Text className="text-base font-bold text-slate-900 dark:text-white">
+              AI Study Assistant
+            </Text>
+          </View>
+          <Text className="text-xs text-slate-500 dark:text-slate-400 mb-3.5 leading-5">
+            Generate a structured summary, key requirements, and checklist subtasks from these instructions.
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              if (!generateAiMutation.isPending) generateAiMutation.mutate();
+            }}
+            disabled={generateAiMutation.isPending}
+            className="w-full bg-brand-600 py-3 rounded-none flex-row items-center justify-center"
+          >
+            {generateAiMutation.isPending ? (
+              <ActivityIndicator size="small" color="#ffffff" />
+            ) : (
+              <>
+                <Sparkles size={16} color="#ffffff" />
+                <Text className="text-white font-semibold text-sm ml-2">
+                  Generate AI Breakdown
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
         </View>
       )}
 
         {/* Instructions */}
-        <View className="bg-white dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-slate-100 dark:border-slate-700">
+        <View className="bg-white dark:bg-slate-800 p-5 rounded-none mb-8 border border-slate-100 dark:border-slate-700">
           <Text className="text-base font-bold text-slate-900 dark:text-white mb-2">
             Original Instructions
           </Text>

@@ -127,8 +127,8 @@ export default function RegisterScreen() {
       >
         {/* Brand / Header Section */}
         <View className="items-center mb-6">
-          <View className="w-16 h-16 rounded-2xl bg-brand-500/10 dark:bg-brand-500/20 justify-center items-center mb-3 border border-brand-500/20">
-            <GraduationCap size={32} color="#2563eb" />
+          <View className="w-16 h-16 rounded-none bg-brand-500/10 dark:bg-brand-500/20 justify-center items-center mb-3 border border-brand-500/20">
+            <GraduationCap size={32} color={isDark ? "#60a5fa" : "#2563eb"} />
           </View>
           <Text className="text-2xl font-bold text-slate-900 dark:text-white text-center">
             Create Student Account
@@ -140,7 +140,7 @@ export default function RegisterScreen() {
 
         {/* Error Feedback Banner */}
         {errorMessage && (
-          <View className="flex-row items-center bg-rose-50 dark:bg-rose-950/60 p-3.5 rounded-2xl mb-5 border border-rose-200 dark:border-rose-900">
+          <View className="flex-row items-center bg-rose-50 dark:bg-rose-950/60 p-3.5 rounded-none mb-5 border border-rose-200 dark:border-rose-900">
             <AlertCircle size={18} color="#e11d48" />
             <Text className="text-xs font-medium text-rose-800 dark:text-rose-200 ml-2.5 flex-1">
               {errorMessage}
@@ -155,7 +155,7 @@ export default function RegisterScreen() {
             <Text className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Username *
             </Text>
-            <View className="flex-row items-center border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 bg-slate-50 dark:bg-slate-800">
+            <View className="flex-row items-center border border-slate-300 dark:border-slate-700 rounded-none px-3.5 bg-slate-50 dark:bg-slate-800">
               <User size={18} color={isDark ? "#94a3b8" : "#64748b"} />
               <TextInput
                 value={username}
@@ -177,7 +177,7 @@ export default function RegisterScreen() {
             <Text className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Student Email *
             </Text>
-            <View className="flex-row items-center border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 bg-slate-50 dark:bg-slate-800">
+            <View className="flex-row items-center border border-slate-300 dark:border-slate-700 rounded-none px-3.5 bg-slate-50 dark:bg-slate-800">
               <Mail size={18} color={isDark ? "#94a3b8" : "#64748b"} />
               <TextInput
                 value={email}
@@ -200,7 +200,7 @@ export default function RegisterScreen() {
             <Text className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Password (min. 8 characters) *
             </Text>
-            <View className="flex-row items-center border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 bg-slate-50 dark:bg-slate-800">
+            <View className="flex-row items-center border border-slate-300 dark:border-slate-700 rounded-none px-3.5 bg-slate-50 dark:bg-slate-800">
               <Lock size={18} color={isDark ? "#94a3b8" : "#64748b"} />
               <TextInput
                 value={password}
@@ -231,7 +231,7 @@ export default function RegisterScreen() {
             <Text className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
               Confirm Password *
             </Text>
-            <View className="flex-row items-center border border-slate-300 dark:border-slate-700 rounded-xl px-3.5 bg-slate-50 dark:bg-slate-800">
+            <View className="flex-row items-center border border-slate-300 dark:border-slate-700 rounded-none px-3.5 bg-slate-50 dark:bg-slate-800">
               <Lock size={18} color={isDark ? "#94a3b8" : "#64748b"} />
               <TextInput
                 value={confirmPassword}
@@ -261,7 +261,7 @@ export default function RegisterScreen() {
           <TouchableOpacity
             onPress={handleRegister}
             disabled={loading}
-            className="w-full bg-brand-600 py-4 rounded-xl items-center flex-row justify-center shadow-sm"
+            className="w-full bg-brand-600 py-4 rounded-none items-center flex-row justify-center shadow-sm"
           >
             {loading ? (
               <ActivityIndicator color="#ffffff" />

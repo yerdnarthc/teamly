@@ -13,6 +13,12 @@ export const apiClient = axios.create({
   timeout: 10000,
 });
 
+let unauthorizedHandler: (() => void) | null = null;
+
+export function registerUnauthorizedHandler(handler: () => void) {
+  unauthorizedHandler = handler;
+}
+
 // Request interceptor: Attach JWT Bearer Access Token
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
@@ -91,6 +97,9 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         await tokenStorage.clearTokens();
+        if (unauthorizedHandler) {
+          unauthorizedHandler();
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

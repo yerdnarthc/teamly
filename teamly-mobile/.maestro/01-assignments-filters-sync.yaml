@@ -1,0 +1,36 @@
+appId: host.exp.exponent
+---
+# Flow 1: Assignments Tab, Search, Filter Modal, Courses, and Sync
+- tapOn:
+    text: "Go to Dashboard"
+    optional: true
+- tapOn: "Assignments"
+- assertVisible: "Search assignments or courses..."
+
+# Search + clear
+- tapOn: "Search assignments or courses..."
+- inputText: "Django"
+- hideKeyboard
+- waitForAnimationToEnd
+- tapOn: "Clear search"
+
+# Filter bottom sheet
+- tapOn: "Open filters"
+- assertVisible: "Filter Assignments"
+- tapOn:
+    text: "In Progress"
+    below: "Progress Status"
+- tapOn: "Apply Filters"
+- assertVisible: "Clear all"
+- tapOn: "Clear all"
+
+# Academic Courses & Terms screen
+- tapOn: "Courses"
+- waitForAnimationToEnd
+- takeScreenshot: "qa-01-courses"
+- back
+
+# Sync from Teams
+- tapOn: "Sync from Teams"
+- waitForAnimationToEnd
+- takeScreenshot: "qa-01-assignments"
