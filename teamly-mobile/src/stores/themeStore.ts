@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { apiClient } from "../services/apiClient";
+import { isAbortError } from "../hooks/useCoalescedMutation";
 
 export type ThemeMode = "SYSTEM" | "LIGHT" | "DARK";
 
@@ -49,11 +50,17 @@ export const useThemeStore = create<ThemeState>((set) => ({
           confirmedServerTheme = mode;
           themeAbortController = null;
         }
-      } catch {
-        if (themeAbortController === controller) {
+      } catch (error) {
+        const isCurrent = themeAbortController === controller;
+        if (isCurrent) {
           themeAbortController = null;
         }
-        // Offline / canceled fallback: retains local theme state
+        if (isAbortError(error)) {
+          return;
+        }
+        if (isCurrent && !themeDebounceTimer && confirmedServerTheme !== null) {
+          set({ theme: confirmedServerTheme });
+        }
       }
     }, 300);
   },
