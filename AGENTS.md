@@ -47,7 +47,7 @@ Declared in `skills-lock.json` (root): `django-expert` (`vintasoftware/django-ai
 
 ### Issue tracker
 
-Local markdown files in `.scratch/<feature>/`. See `docs/agents/issue-tracker.md`.
+GitHub Issues in `yerdnarthc/teamly`. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
