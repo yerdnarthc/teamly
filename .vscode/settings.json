@@ -1,3 +1,4 @@
 {
-    "python.terminal.useEnvFile": true
+    "python.terminal.useEnvFile": true,
+    "typescript.tsdk": "teamly-mobile/node_modules/typescript/lib"
 }
