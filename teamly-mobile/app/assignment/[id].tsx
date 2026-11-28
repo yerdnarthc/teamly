@@ -248,7 +248,7 @@ export default function AssignmentDetailScreen() {
             onPress={() => router.back()}
             accessibilityLabel="Go back"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 justify-center items-center shadow-sm border border-slate-200 dark:border-slate-700"
+            className="w-11 h-11 rounded-none bg-white dark:bg-slate-800 justify-center items-center shadow-sm border border-slate-200 dark:border-slate-700"
           >
             <ArrowLeft size={18} color={isDark ? "#f8fafc" : "#0f172a"} />
           </TouchableOpacity>
@@ -259,7 +259,7 @@ export default function AssignmentDetailScreen() {
               disabled={deleteMutation.isPending}
               accessibilityLabel="Edit assignment"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              className="flex-row items-center px-3.5 h-11 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+              className="flex-row items-center px-3.5 h-11 rounded-none bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
             >
               <Pencil size={15} color={isDark ? "#f8fafc" : "#0f172a"} />
               <Text className="text-xs font-semibold text-slate-900 dark:text-slate-100 ml-1.5">
@@ -272,7 +272,7 @@ export default function AssignmentDetailScreen() {
               disabled={deleteMutation.isPending}
               accessibilityLabel="Delete assignment"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              className="w-11 h-11 rounded-full bg-rose-50 dark:bg-rose-950/50 justify-center items-center border border-rose-200 dark:border-rose-900"
+              className="w-11 h-11 rounded-none bg-rose-50 dark:bg-rose-950/50 justify-center items-center border border-rose-200 dark:border-rose-900"
             >
               {deleteMutation.isPending ? (
                 <ActivityIndicator size="small" color="#e11d48" />
@@ -288,7 +288,7 @@ export default function AssignmentDetailScreen() {
           <View className="flex-1 mr-2">
             {assignment.subject ? (
               <View
-                className="px-3 py-1 rounded-full self-start max-w-full"
+                className="px-3 py-1 rounded-none self-start max-w-full"
                 style={{ backgroundColor: `${assignment.subject.color}18` }}
               >
                 <Text
@@ -301,7 +301,7 @@ export default function AssignmentDetailScreen() {
                 </Text>
               </View>
             ) : (
-              <View className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full self-start">
+              <View className="bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-none self-start">
                 <Text className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                   General
                 </Text>
@@ -313,14 +313,14 @@ export default function AssignmentDetailScreen() {
             {(() => {
               const pBadge = PRIORITY_BADGE[assignment.priority?.code] || PRIORITY_BADGE.MEDIUM;
               return (
-                <View className={`px-2.5 py-1 rounded-full border ${pBadge.bg}`}>
+                <View className={`px-2.5 py-1 rounded-none border ${pBadge.bg}`}>
                   <Text className={`text-xs font-semibold ${pBadge.text}`}>
                     {pBadge.label}
                   </Text>
                 </View>
               );
             })()}
-            <View className="bg-brand-50 dark:bg-brand-950/60 px-3 py-1 rounded-full border border-brand-200 dark:border-brand-800">
+            <View className="bg-brand-50 dark:bg-brand-950/60 px-3 py-1 rounded-none border border-brand-200 dark:border-brand-800">
               <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300">
                 {assignment.status.label}
               </Text>
@@ -345,7 +345,7 @@ export default function AssignmentDetailScreen() {
         {assignment.teams_url ? (
           <TouchableOpacity
             onPress={() => Linking.openURL(assignment.teams_url).catch(() => {})}
-            className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3 py-1.5 rounded-xl border border-brand-200 dark:border-brand-800"
+            className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3 py-1.5 rounded-none border border-brand-200 dark:border-brand-800"
           >
             <ExternalLink size={13} color={isDark ? "#93c5fd" : "#2563eb"} />
             <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 ml-1.5">
@@ -356,7 +356,7 @@ export default function AssignmentDetailScreen() {
       </View>
 
       {/* Subtask Checklist Card */}
-      <View className="bg-white dark:bg-slate-800 p-5 rounded-3xl mb-6 shadow-sm border border-slate-100 dark:border-slate-700">
+      <View className="bg-white dark:bg-slate-800 p-5 rounded-none mb-6 shadow-sm border border-slate-100 dark:border-slate-700">
         <Text className="text-lg font-bold text-slate-900 dark:text-white mb-3">
           Checklist ({assignment.subtasks.filter((s) => s.is_done).length}/
           {assignment.subtasks.length})
@@ -394,9 +394,9 @@ export default function AssignmentDetailScreen() {
 
       {/* AI Assistant Section */}
       {assignment.ai_summary ? (
-        <View className="bg-brand-50 dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-brand-200 dark:border-brand-800/60">
+        <View className="bg-brand-50 dark:bg-slate-800 p-5 rounded-none mb-8 border border-brand-200 dark:border-brand-800/60">
           <View className="flex-row items-center mb-3">
-            <View className="w-8 h-8 rounded-full bg-brand-500 justify-center items-center mr-2">
+            <View className="w-8 h-8 rounded-none bg-brand-500 justify-center items-center mr-2">
               <Sparkles size={16} color="#ffffff" />
             </View>
             <Text className="text-base font-bold text-slate-900 dark:text-white">
@@ -413,7 +413,7 @@ export default function AssignmentDetailScreen() {
               {assignment.ai_summary.deadlines.map((dl, dlIdx) => (
                 <View
                   key={dlIdx}
-                  className="px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800"
+                  className="px-2.5 py-1 rounded-none bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800"
                 >
                   <Text className="text-xs font-medium text-amber-800 dark:text-amber-300">
                     Date hint: {dl}
@@ -446,14 +446,14 @@ export default function AssignmentDetailScreen() {
                 </Text>
 
                 {isAlreadyAdopted ? (
-                  <View className="bg-green-100 dark:bg-green-950/60 px-2.5 py-1 rounded-full border border-green-200 dark:border-green-800">
+                  <View className="bg-green-100 dark:bg-green-950/60 px-2.5 py-1 rounded-none border border-green-200 dark:border-green-800">
                     <Text className="text-xs font-semibold text-green-700 dark:text-green-300">✓ In Checklist</Text>
                   </View>
                 ) : (
                   <TouchableOpacity
                     onPress={() => adoptSubtaskMutation.mutate(suggestion)}
                     disabled={isAdopting}
-                    className="bg-brand-600 px-3 py-1.5 rounded-full flex-row items-center"
+                    className="bg-brand-600 px-3 py-1.5 rounded-none flex-row items-center"
                   >
                     {isAdopting ? (
                       <ActivityIndicator size="small" color="#ffffff" />
@@ -474,9 +474,9 @@ export default function AssignmentDetailScreen() {
           </Text>
         </View>
       ) : (
-        <View className="bg-white dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-slate-200 dark:border-slate-700">
+        <View className="bg-white dark:bg-slate-800 p-5 rounded-none mb-8 border border-slate-200 dark:border-slate-700">
           <View className="flex-row items-center mb-2">
-            <View className="w-8 h-8 rounded-full bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 justify-center items-center mr-2.5">
+            <View className="w-8 h-8 rounded-none bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 justify-center items-center mr-2.5">
               <Sparkles size={16} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
             <Text className="text-base font-bold text-slate-900 dark:text-white">
@@ -491,7 +491,7 @@ export default function AssignmentDetailScreen() {
               if (!generateAiMutation.isPending) generateAiMutation.mutate();
             }}
             disabled={generateAiMutation.isPending}
-            className="w-full bg-brand-600 py-3 rounded-2xl flex-row items-center justify-center"
+            className="w-full bg-brand-600 py-3 rounded-none flex-row items-center justify-center"
           >
             {generateAiMutation.isPending ? (
               <ActivityIndicator size="small" color="#ffffff" />
@@ -508,7 +508,7 @@ export default function AssignmentDetailScreen() {
       )}
 
         {/* Instructions */}
-        <View className="bg-white dark:bg-slate-800 p-5 rounded-3xl mb-8 border border-slate-100 dark:border-slate-700">
+        <View className="bg-white dark:bg-slate-800 p-5 rounded-none mb-8 border border-slate-100 dark:border-slate-700">
           <Text className="text-base font-bold text-slate-900 dark:text-white mb-2">
             Original Instructions
           </Text>

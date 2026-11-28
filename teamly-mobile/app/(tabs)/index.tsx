@@ -159,13 +159,13 @@ export default function AssignmentsFeedScreen() {
     return (
       <TouchableOpacity
         onPress={() => router.push(`/assignment/${item.id}`)}
-        className="bg-white dark:bg-slate-800 p-4 rounded-2xl mb-3 border border-slate-100 dark:border-slate-700"
+        className="bg-white dark:bg-slate-800 p-4 rounded-none mb-3 border border-slate-100 dark:border-slate-700"
       >
         <View className="flex-row justify-between items-center mb-2">
           <View className="flex-1 mr-2">
             {item.subject ? (
               <View
-                className="px-2.5 py-1 rounded-full flex-row items-center self-start max-w-full"
+                className="px-2.5 py-1 rounded-none flex-row items-center self-start max-w-full"
                 style={{ backgroundColor: `${subjectColor}15` }}
               >
                 <View
@@ -182,7 +182,7 @@ export default function AssignmentsFeedScreen() {
                 </Text>
               </View>
             ) : (
-              <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full self-start">
+              <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-none self-start">
                 <Text className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                   General
                 </Text>
@@ -191,7 +191,7 @@ export default function AssignmentsFeedScreen() {
           </View>
 
           <View
-            className={`px-2.5 py-0.5 rounded-full flex-shrink-0 ${
+            className={`px-2.5 py-0.5 rounded-none flex-shrink-0 ${
               isCompleted
                 ? "bg-green-100 dark:bg-green-950/60"
                 : isHighOrUrgent
@@ -240,7 +240,7 @@ export default function AssignmentsFeedScreen() {
     <View className="flex-1 bg-slate-50 dark:bg-slate-900 px-4 pt-3">
       {/* Search & Filter Controls */}
       <View className="flex-row items-center gap-2.5 mb-3">
-        <View className="flex-1 flex-row items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3.5">
+        <View className="flex-1 flex-row items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-none px-3.5">
           <Search size={16} color="#94a3b8" />
           <TextInput
             value={searchQuery}
@@ -264,7 +264,7 @@ export default function AssignmentsFeedScreen() {
         <TouchableOpacity
           onPress={() => router.push("/modal/filter")}
           accessibilityLabel="Open filters"
-          className={`flex-row items-center justify-center h-11 px-3.5 rounded-2xl border ${
+          className={`flex-row items-center justify-center h-11 px-3.5 rounded-none border ${
             activeFilterCount > 0
               ? "bg-brand-600 border-brand-600"
               : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -275,7 +275,7 @@ export default function AssignmentsFeedScreen() {
             color={activeFilterCount > 0 ? "#ffffff" : isDark ? "#cbd5e1" : "#475569"}
           />
           {activeFilterCount > 0 && (
-            <View className="ml-1.5 px-1.5 py-0.5 rounded-full bg-white/20">
+            <View className="ml-1.5 px-1.5 py-0.5 rounded-none bg-white/20">
               <Text className="text-[11px] font-bold text-white">
                 {activeFilterCount}
               </Text>
@@ -292,7 +292,7 @@ export default function AssignmentsFeedScreen() {
               onPress={() =>
                 setFilters({ statusCode: null, priorityCode, subjectId })
               }
-              className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-full border border-brand-200 dark:border-brand-800"
+              className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-none border border-brand-200 dark:border-brand-800"
             >
               <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 mr-1">
                 {STATUS_LABELS[statusCode] || statusCode}
@@ -306,7 +306,7 @@ export default function AssignmentsFeedScreen() {
               onPress={() =>
                 setFilters({ statusCode, priorityCode: null, subjectId })
               }
-              className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-full border border-brand-200 dark:border-brand-800"
+              className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-none border border-brand-200 dark:border-brand-800"
             >
               <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 mr-1">
                 {PRIORITY_LABELS[priorityCode] || priorityCode} Priority
@@ -320,7 +320,7 @@ export default function AssignmentsFeedScreen() {
               onPress={() =>
                 setFilters({ statusCode, priorityCode, subjectId: null })
               }
-              className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-full border border-brand-200 dark:border-brand-800"
+              className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-none border border-brand-200 dark:border-brand-800"
             >
               <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 mr-1">
                 {activeSubjectName || "Course"}
@@ -334,7 +334,7 @@ export default function AssignmentsFeedScreen() {
               onPress={() =>
                 setFilters({ statusCode, priorityCode, subjectId, sortBy: "due_asc" })
               }
-              className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-full border border-brand-200 dark:border-brand-800"
+              className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-none border border-brand-200 dark:border-brand-800"
             >
               <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 mr-1">
                 Sort: {SORT_LABELS[sortBy] || sortBy}
@@ -361,7 +361,7 @@ export default function AssignmentsFeedScreen() {
           <TouchableOpacity
             onPress={() => router.push("/academic")}
             accessibilityLabel="View enrolled courses and terms"
-            className="flex-row items-center bg-white dark:bg-slate-800 px-3 py-2 rounded-full border border-slate-200 dark:border-slate-700"
+            className="flex-row items-center bg-white dark:bg-slate-800 px-3 py-2 rounded-none border border-slate-200 dark:border-slate-700"
           >
             <BookOpen size={14} color={isDark ? "#cbd5e1" : "#475569"} />
             <Text className="text-xs font-semibold text-slate-700 dark:text-slate-200 ml-1.5">
@@ -374,7 +374,7 @@ export default function AssignmentsFeedScreen() {
               if (!syncMutation.isPending) syncMutation.mutate();
             }}
             disabled={syncMutation.isPending}
-            className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3.5 py-2 rounded-full border border-brand-200 dark:border-brand-800"
+            className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-3.5 py-2 rounded-none border border-brand-200 dark:border-brand-800"
           >
             {syncMutation.isPending ? (
               <ActivityIndicator size="small" color={isDark ? "#93c5fd" : "#2563eb"} />
@@ -390,7 +390,7 @@ export default function AssignmentsFeedScreen() {
 
       {/* Sync Toast Feedback Banner */}
       {syncToast && (
-        <View className="flex-row items-center bg-green-50 dark:bg-green-950/70 p-3 rounded-2xl mb-3 border border-green-200 dark:border-green-800">
+        <View className="flex-row items-center bg-green-50 dark:bg-green-950/70 p-3 rounded-none mb-3 border border-green-200 dark:border-green-800">
           <CheckCircle2 size={18} color="#16a34a" />
           <Text className="text-xs font-medium text-green-800 dark:text-green-200 ml-2 flex-1">
             {syncToast}
@@ -431,7 +431,7 @@ export default function AssignmentsFeedScreen() {
           </Text>
           <TouchableOpacity
             onPress={resetAll}
-            className="bg-brand-600 px-5 py-3 rounded-2xl"
+            className="bg-brand-600 px-5 py-3 rounded-none"
           >
             <Text className="text-white font-semibold text-sm">Clear Filters</Text>
           </TouchableOpacity>
@@ -452,7 +452,7 @@ export default function AssignmentsFeedScreen() {
       <TouchableOpacity
         onPress={() => router.push("/assignment/new")}
         accessibilityLabel="Create new assignment"
-        className="absolute bottom-8 right-6 w-14 h-14 rounded-full bg-brand-600 justify-center items-center shadow-lg shadow-blue-500/40"
+        className="absolute bottom-8 right-6 w-14 h-14 rounded-none bg-brand-600 justify-center items-center shadow-lg shadow-blue-500/40"
       >
         <Plus size={28} color="#ffffff" />
       </TouchableOpacity>

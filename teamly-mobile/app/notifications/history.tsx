@@ -199,7 +199,7 @@ export default function NotificationHistoryScreen() {
             onPress={() => router.back()}
             accessibilityLabel="Go back"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 justify-center items-center border border-slate-200 dark:border-slate-700 mr-3"
+            className="w-11 h-11 rounded-none bg-white dark:bg-slate-800 justify-center items-center border border-slate-200 dark:border-slate-700 mr-3"
           >
             <ArrowLeft size={18} color={isDark ? "#f8fafc" : "#0f172a"} />
           </TouchableOpacity>
@@ -215,7 +215,7 @@ export default function NotificationHistoryScreen() {
 
         {data?.summary && (
           <View
-            className={`px-2.5 py-1 rounded-full border ${
+            className={`px-2.5 py-1 rounded-none border ${
               data.summary.deadline_enabled
                 ? "bg-brand-50 dark:bg-brand-950/60 border-brand-200 dark:border-brand-800"
                 : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -238,7 +238,7 @@ export default function NotificationHistoryScreen() {
 
       {/* Pinned Feedback Banner */}
       {toastMsg && (
-        <View className="mx-5 mt-3 mb-1 flex-row items-center justify-between bg-emerald-50 dark:bg-emerald-950/80 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800">
+        <View className="mx-5 mt-3 mb-1 flex-row items-center justify-between bg-emerald-50 dark:bg-emerald-950/80 p-3.5 rounded-none border border-emerald-200 dark:border-emerald-800">
           <View className="flex-row items-center flex-1 mr-2">
             <CheckCircle2 size={18} color="#10b981" />
             <Text className="text-xs font-semibold text-emerald-800 dark:text-emerald-200 ml-2.5 flex-1">
@@ -280,7 +280,7 @@ export default function NotificationHistoryScreen() {
             <>
               {/* Summary Strip */}
               <View className="flex-row gap-2.5 mb-5">
-                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-none border border-slate-200 dark:border-slate-700">
                   <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Queued
                   </Text>
@@ -288,7 +288,7 @@ export default function NotificationHistoryScreen() {
                     {data?.summary.pending_count ?? 0}
                   </Text>
                 </View>
-                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-none border border-slate-200 dark:border-slate-700">
                   <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Delivered
                   </Text>
@@ -296,7 +296,7 @@ export default function NotificationHistoryScreen() {
                     {data?.summary.delivered_count ?? 0}
                   </Text>
                 </View>
-                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-none border border-slate-200 dark:border-slate-700">
                   <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Lead Time
                   </Text>
@@ -307,7 +307,7 @@ export default function NotificationHistoryScreen() {
               </View>
 
               {/* Segmented Filter */}
-              <View className="flex-row bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-2xl mb-5 border border-slate-200 dark:border-slate-700">
+              <View className="flex-row bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-none mb-5 border border-slate-200 dark:border-slate-700">
                 {[
                   { key: "ALL" as ViewTab, label: "All" },
                   { key: "QUEUE" as ViewTab, label: "Scheduled Queue" },
@@ -318,7 +318,7 @@ export default function NotificationHistoryScreen() {
                     <TouchableOpacity
                       key={tab.key}
                       onPress={() => setActiveTab(tab.key)}
-                      className={`flex-1 py-2 rounded-xl items-center ${
+                      className={`flex-1 py-2 rounded-none items-center ${
                         isSelected ? "bg-brand-600" : "bg-transparent"
                       }`}
                     >
@@ -359,7 +359,7 @@ export default function NotificationHistoryScreen() {
 
             if (item.type === "empty-queue") {
               return (
-                <View className="bg-white dark:bg-slate-800 rounded-2xl p-6 mb-3 border border-slate-200 dark:border-slate-700 items-center">
+                <View className="bg-white dark:bg-slate-800 rounded-none p-6 mb-3 border border-slate-200 dark:border-slate-700 items-center">
                   <Bell size={32} color="#94a3b8" />
                   <Text className="text-sm font-bold text-slate-800 dark:text-white mt-2">
                     No Scheduled Reminders
@@ -373,7 +373,7 @@ export default function NotificationHistoryScreen() {
 
             if (item.type === "empty-logs") {
               return (
-                <View className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 items-center">
+                <View className="bg-white dark:bg-slate-800 rounded-none p-5 border border-slate-200 dark:border-slate-700 items-center">
                   <Text className="text-xs text-slate-500 dark:text-slate-400">
                     No notifications have been delivered yet.
                   </Text>
@@ -385,9 +385,9 @@ export default function NotificationHistoryScreen() {
               const rem = item.item;
               const isDismissing = dismissingId === rem.id;
               return (
-                <View className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-2.5 border border-slate-200 dark:border-slate-700">
+                <View className="bg-white dark:bg-slate-800 rounded-none p-4 mb-2.5 border border-slate-200 dark:border-slate-700">
                   <View className="flex-row items-center justify-between mb-2">
-                    <View className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-full border border-brand-200 dark:border-brand-800">
+                    <View className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-none border border-brand-200 dark:border-brand-800">
                       {rem.channel === "EMAIL" ? (
                         <Mail size={11} color={isDark ? "#93c5fd" : "#2563eb"} />
                       ) : (
@@ -404,7 +404,7 @@ export default function NotificationHistoryScreen() {
                       disabled={isDismissing}
                       accessibilityLabel="Dismiss scheduled reminder"
                       hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                      className="flex-row items-center px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-700"
+                      className="flex-row items-center px-2.5 py-1 rounded-none bg-slate-100 dark:bg-slate-700"
                     >
                       {isDismissing ? (
                         <ActivityIndicator size="small" color="#64748b" />
@@ -465,10 +465,10 @@ export default function NotificationHistoryScreen() {
                     router.push(`/assignment/${log.assignment.id}`);
                   }
                 }}
-                className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-2.5 border border-slate-200 dark:border-slate-700"
+                className="bg-white dark:bg-slate-800 rounded-none p-4 mb-2.5 border border-slate-200 dark:border-slate-700"
               >
                 <View className="flex-row items-center justify-between mb-1.5">
-                  <View className={`px-2.5 py-0.5 rounded-full ${badge.bg}`}>
+                  <View className={`px-2.5 py-0.5 rounded-none ${badge.bg}`}>
                     <Text className={`text-[11px] font-bold ${badge.text}`}>
                       {badge.label}
                     </Text>

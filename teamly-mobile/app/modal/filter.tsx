@@ -99,11 +99,11 @@ export default function FilterBottomSheetModal() {
       <Pressable className="flex-1" onPress={() => router.back()} />
 
       {/* Bottom Sheet Panel */}
-      <View className="bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 max-h-[82%]">
+      <View className="bg-white dark:bg-slate-900 rounded-none border-t border-slate-200 dark:border-slate-800 max-h-[82%]">
         <SafeAreaView edges={["bottom", "left", "right"]} className="w-full max-h-full">
           {/* Drag Handle */}
           <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+            <View className="w-10 h-1.5 rounded-none bg-slate-300 dark:bg-slate-700" />
           </View>
 
           {/* Header */}
@@ -113,7 +113,7 @@ export default function FilterBottomSheetModal() {
                 Filter Assignments
               </Text>
               {activeDraftCount > 0 && (
-                <View className="ml-2 px-2 py-0.5 rounded-full bg-brand-100 dark:bg-brand-950/70 border border-brand-200 dark:border-brand-800">
+                <View className="ml-2 px-2 py-0.5 rounded-none bg-brand-100 dark:bg-brand-950/70 border border-brand-200 dark:border-brand-800">
                   <Text className="text-xs font-bold text-brand-700 dark:text-brand-300">
                     {activeDraftCount}
                   </Text>
@@ -125,7 +125,7 @@ export default function FilterBottomSheetModal() {
               <TouchableOpacity
                 onPress={handleReset}
                 accessibilityLabel="Reset filters"
-                className="flex-row items-center px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800"
+                className="flex-row items-center px-3 py-2 rounded-none bg-slate-100 dark:bg-slate-800"
               >
                 <RotateCcw size={14} color={isDark ? "#cbd5e1" : "#475569"} />
                 <Text className="text-xs font-semibold text-slate-700 dark:text-slate-300 ml-1.5">
@@ -137,7 +137,7 @@ export default function FilterBottomSheetModal() {
                 onPress={() => router.back()}
                 accessibilityLabel="Close filter modal"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 justify-center items-center"
+                className="w-10 h-10 rounded-none bg-slate-100 dark:bg-slate-800 justify-center items-center"
               >
                 <X size={18} color={isDark ? "#f8fafc" : "#0f172a"} />
               </TouchableOpacity>
@@ -160,7 +160,7 @@ export default function FilterBottomSheetModal() {
                   <TouchableOpacity
                     key={opt.code}
                     onPress={() => setDraftSortBy(opt.code)}
-                    className={`px-3.5 py-2 rounded-full border ${
+                    className={`px-3.5 py-2 rounded-none border ${
                       selected
                         ? "bg-brand-600 border-brand-600"
                         : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -189,7 +189,7 @@ export default function FilterBottomSheetModal() {
                   <TouchableOpacity
                     key={opt.label}
                     onPress={() => setDraftStatus(opt.code)}
-                    className={`px-3.5 py-2.5 rounded-2xl border ${
+                    className={`px-3.5 py-2.5 rounded-none border ${
                       isSelected
                         ? "bg-brand-600 border-brand-600"
                         : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -220,7 +220,7 @@ export default function FilterBottomSheetModal() {
                   <TouchableOpacity
                     key={opt.label}
                     onPress={() => setDraftPriority(opt.code)}
-                    className={`px-3.5 py-2.5 rounded-2xl border ${
+                    className={`px-3.5 py-2.5 rounded-none border ${
                       isSelected
                         ? "bg-brand-600 border-brand-600"
                         : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -250,7 +250,7 @@ export default function FilterBottomSheetModal() {
               <View className="flex-row flex-wrap gap-2 mb-4">
                 <TouchableOpacity
                   onPress={() => setDraftSubjectId(null)}
-                  className={`px-3.5 py-2.5 rounded-2xl border ${
+                  className={`px-3.5 py-2.5 rounded-none border ${
                     draftSubjectId === null
                       ? "bg-brand-600 border-brand-600"
                       : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -273,7 +273,7 @@ export default function FilterBottomSheetModal() {
                     <TouchableOpacity
                       key={sub.id}
                       onPress={() => setDraftSubjectId(sub.id)}
-                      className={`px-3.5 py-2.5 rounded-2xl border flex-row items-center ${
+                      className={`px-3.5 py-2.5 rounded-none border flex-row items-center ${
                         isSelected
                           ? "bg-brand-600 border-brand-600"
                           : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -303,7 +303,7 @@ export default function FilterBottomSheetModal() {
           <View className="px-5 pt-3 pb-4 border-t border-slate-100 dark:border-slate-800">
             <TouchableOpacity
               onPress={handleApply}
-              className="w-full bg-brand-600 py-4 rounded-2xl flex-row items-center justify-center"
+              className="w-full bg-brand-600 py-4 rounded-none flex-row items-center justify-center"
             >
               <Check size={18} color="#ffffff" />
               <Text className="text-white font-bold text-base ml-2">

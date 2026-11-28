@@ -41,7 +41,7 @@ export default function LoginScreen() {
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
-            className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800"
+            className="w-full border border-slate-300 dark:border-slate-700 rounded-none px-4 py-3 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800"
             placeholder="Enter username"
             placeholderTextColor="#94a3b8"
           />
@@ -53,7 +53,7 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800"
+            className="w-full border border-slate-300 dark:border-slate-700 rounded-none px-4 py-3 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800"
             placeholder="Enter password"
             placeholderTextColor="#94a3b8"
           />
@@ -62,7 +62,7 @@ export default function LoginScreen() {
         <TouchableOpacity
           onPress={handleLogin}
           disabled={loading}
-          className="w-full bg-brand-600 py-4 rounded-xl items-center mt-6 shadow-sm"
+          className="w-full bg-brand-600 py-4 rounded-none items-center mt-6 shadow-sm"
         >
           {loading ? (
             <ActivityIndicator color="#ffffff" />

@@ -88,7 +88,7 @@ export function DeadlinePickerCard({
   });
 
   return (
-    <View className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-200 dark:border-slate-700 mb-5">
+    <View className="bg-white dark:bg-slate-800 p-4 rounded-none border border-slate-200 dark:border-slate-700 mb-5">
       {/* Header & Toggle */}
       <View className="flex-row items-center justify-between mb-3">
         <View className="flex-row items-center">
@@ -120,7 +120,7 @@ export function DeadlinePickerCard({
                 <TouchableOpacity
                   key={preset.label}
                   onPress={() => applyQuickPreset(preset.days)}
-                  className={`px-3 py-1.5 rounded-xl border ${
+                  className={`px-3 py-1.5 rounded-none border ${
                     isPresetActive
                       ? "bg-brand-600 border-brand-600"
                       : "bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600"
@@ -143,14 +143,14 @@ export function DeadlinePickerCard({
             <TouchableOpacity
               onPress={() => setActiveMode(activeMode === "date" ? null : "date")}
               accessibilityLabel="Select due date"
-              className={`flex-row items-center justify-between px-3.5 py-3 rounded-2xl border ${
+              className={`flex-row items-center justify-between px-3.5 py-3 rounded-none border ${
                 activeMode === "date"
                   ? "bg-brand-50 dark:bg-brand-950/60 border-brand-500 dark:border-brand-500"
                   : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
               }`}
             >
               <View className="flex-row items-center">
-                <View className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950/70 justify-center items-center mr-3">
+                <View className="w-9 h-9 rounded-none bg-blue-100 dark:bg-blue-950/70 justify-center items-center mr-3">
                   <Calendar size={16} color={isDark ? "#60a5fa" : "#2563eb"} />
                 </View>
                 <View>
@@ -168,14 +168,14 @@ export function DeadlinePickerCard({
             <TouchableOpacity
               onPress={() => setActiveMode(activeMode === "time" ? null : "time")}
               accessibilityLabel="Select due time"
-              className={`flex-row items-center justify-between px-3.5 py-3 rounded-2xl border ${
+              className={`flex-row items-center justify-between px-3.5 py-3 rounded-none border ${
                 activeMode === "time"
                   ? "bg-brand-50 dark:bg-brand-950/60 border-brand-500 dark:border-brand-500"
                   : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
               }`}
             >
               <View className="flex-row items-center">
-                <View className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-950/70 justify-center items-center mr-3">
+                <View className="w-9 h-9 rounded-none bg-indigo-100 dark:bg-indigo-950/70 justify-center items-center mr-3">
                   <Clock size={16} color={isDark ? "#818cf8" : "#4f46e5"} />
                 </View>
                 <View>
@@ -213,7 +213,7 @@ export function DeadlinePickerCard({
               {Platform.OS === "ios" && (
                 <TouchableOpacity
                   onPress={() => setActiveMode(null)}
-                  className="mt-2 py-2.5 rounded-xl bg-brand-600 items-center"
+                  className="mt-2 py-2.5 rounded-none bg-brand-600 items-center"
                 >
                   <Text className="text-white font-semibold text-xs">Done</Text>
                 </TouchableOpacity>

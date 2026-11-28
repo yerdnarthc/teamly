@@ -215,7 +215,7 @@ export default function SyncHistoryScreen() {
             onPress={() => router.back()}
             accessibilityLabel="Go back"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 justify-center items-center border border-slate-200 dark:border-slate-700 mr-3"
+            className="w-11 h-11 rounded-none bg-white dark:bg-slate-800 justify-center items-center border border-slate-200 dark:border-slate-700 mr-3"
           >
             <ArrowLeft size={18} color={isDark ? "#f8fafc" : "#0f172a"} />
           </TouchableOpacity>
@@ -232,7 +232,7 @@ export default function SyncHistoryScreen() {
         <TouchableOpacity
           onPress={() => syncMutation.mutate()}
           disabled={syncMutation.isPending}
-          className="flex-row items-center bg-brand-600 px-3.5 py-2.5 rounded-2xl"
+          className="flex-row items-center bg-brand-600 px-3.5 py-2.5 rounded-none"
         >
           {syncMutation.isPending ? (
             <ActivityIndicator size="small" color="#ffffff" />
@@ -247,7 +247,7 @@ export default function SyncHistoryScreen() {
 
       {/* Pinned Confirmation Toast */}
       {syncToast && (
-        <View className="mx-5 mt-3 mb-1 flex-row items-center justify-between bg-emerald-50 dark:bg-emerald-950/80 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800">
+        <View className="mx-5 mt-3 mb-1 flex-row items-center justify-between bg-emerald-50 dark:bg-emerald-950/80 p-3.5 rounded-none border border-emerald-200 dark:border-emerald-800">
           <View className="flex-row items-center flex-1 mr-2">
             <CheckCircle2 size={18} color="#10b981" />
             <Text className="text-xs font-semibold text-emerald-800 dark:text-emerald-200 ml-2.5 flex-1 leading-4">
@@ -289,7 +289,7 @@ export default function SyncHistoryScreen() {
             <>
               {/* Summary Strip */}
               <View className="flex-row gap-2.5 mb-5">
-                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-none border border-slate-200 dark:border-slate-700">
                   <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Sync Runs
                   </Text>
@@ -297,7 +297,7 @@ export default function SyncHistoryScreen() {
                     {data?.summary.total_runs ?? 0}
                   </Text>
                 </View>
-                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-none border border-slate-200 dark:border-slate-700">
                   <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Events
                   </Text>
@@ -305,7 +305,7 @@ export default function SyncHistoryScreen() {
                     {data?.summary.total_events ?? 0}
                   </Text>
                 </View>
-                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-none border border-slate-200 dark:border-slate-700">
                   <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Cursors
                   </Text>
@@ -328,7 +328,7 @@ export default function SyncHistoryScreen() {
                   {data.cursors.map((cursor) => (
                     <View
                       key={cursor.subject_id}
-                      className="bg-white dark:bg-slate-800 rounded-2xl p-3.5 mb-2.5 border border-slate-200 dark:border-slate-700"
+                      className="bg-white dark:bg-slate-800 rounded-none p-3.5 mb-2.5 border border-slate-200 dark:border-slate-700"
                     >
                       <View className="flex-row items-center justify-between mb-1">
                         <View className="flex-row items-center flex-1 mr-2">
@@ -346,7 +346,7 @@ export default function SyncHistoryScreen() {
                         </View>
 
                         <View
-                          className={`px-2 py-0.5 rounded-full flex-shrink-0 ${
+                          className={`px-2 py-0.5 rounded-none flex-shrink-0 ${
                             cursor.last_error
                               ? "bg-rose-100 dark:bg-rose-950/60"
                               : cursor.has_delta_token
@@ -386,7 +386,7 @@ export default function SyncHistoryScreen() {
               )}
 
               {/* Segmented Tab Filter */}
-              <View className="flex-row bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-2xl mb-5 border border-slate-200 dark:border-slate-700">
+              <View className="flex-row bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-none mb-5 border border-slate-200 dark:border-slate-700">
                 {[
                   { key: "ALL" as DiagnosticTab, label: "All Logs" },
                   { key: "RUNS" as DiagnosticTab, label: "Sync Runs" },
@@ -397,7 +397,7 @@ export default function SyncHistoryScreen() {
                     <TouchableOpacity
                       key={tab.key}
                       onPress={() => setActiveTab(tab.key)}
-                      className={`flex-1 py-2 rounded-xl items-center ${
+                      className={`flex-1 py-2 rounded-none items-center ${
                         isSelected ? "bg-brand-600" : "bg-transparent"
                       }`}
                     >
@@ -438,7 +438,7 @@ export default function SyncHistoryScreen() {
 
             if (item.type === "empty-runs") {
               return (
-                <View className="bg-white dark:bg-slate-800 rounded-2xl p-5 mb-3 border border-slate-200 dark:border-slate-700 items-center">
+                <View className="bg-white dark:bg-slate-800 rounded-none p-5 mb-3 border border-slate-200 dark:border-slate-700 items-center">
                   <Text className="text-xs text-slate-500 dark:text-slate-400">
                     No sync runs recorded yet. Tap "Sync Now" above to start.
                   </Text>
@@ -448,7 +448,7 @@ export default function SyncHistoryScreen() {
 
             if (item.type === "empty-events") {
               return (
-                <View className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 items-center">
+                <View className="bg-white dark:bg-slate-800 rounded-none p-5 border border-slate-200 dark:border-slate-700 items-center">
                   <Text className="text-xs text-slate-500 dark:text-slate-400">
                     No assignment ingestion events recorded yet.
                   </Text>
@@ -461,7 +461,7 @@ export default function SyncHistoryScreen() {
               const isSuccess = run.result === "SUCCESS";
               const isPartial = run.result === "PARTIAL";
               return (
-                <View className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-2.5 border border-slate-200 dark:border-slate-700 flex-row items-center justify-between">
+                <View className="bg-white dark:bg-slate-800 rounded-none p-4 mb-2.5 border border-slate-200 dark:border-slate-700 flex-row items-center justify-between">
                   <View className="flex-row items-center flex-1 mr-2">
                     {isSuccess ? (
                       <CheckCircle2 size={18} color="#10b981" />
@@ -481,7 +481,7 @@ export default function SyncHistoryScreen() {
                     </View>
                   </View>
 
-                  <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-xl">
+                  <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-none">
                     <Text className="text-xs font-semibold text-slate-700 dark:text-slate-200">
                       +{run.new_count} new · {run.updated_count} upd
                     </Text>
@@ -500,10 +500,10 @@ export default function SyncHistoryScreen() {
                     router.push(`/assignment/${evt.assignment.id}`);
                   }
                 }}
-                className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-2.5 border border-slate-200 dark:border-slate-700"
+                className="bg-white dark:bg-slate-800 rounded-none p-4 mb-2.5 border border-slate-200 dark:border-slate-700"
               >
                 <View className="flex-row items-center justify-between mb-1.5">
-                  <View className={`px-2.5 py-0.5 rounded-full ${style.bg}`}>
+                  <View className={`px-2.5 py-0.5 rounded-none ${style.bg}`}>
                     <Text className={`text-[11px] font-bold ${style.text}`}>
                       {style.label}
                     </Text>

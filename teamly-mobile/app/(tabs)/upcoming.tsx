@@ -231,7 +231,7 @@ export default function UpcomingScreen() {
         {/* Workload Metrics Banner */}
         <View className="flex-row gap-2.5 mb-6">
           {/* Active Card */}
-          <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-700">
+          <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-none border border-slate-100 dark:border-slate-700">
             <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Active
             </Text>
@@ -242,7 +242,7 @@ export default function UpcomingScreen() {
 
           {/* Overdue Card */}
           <View
-            className={`flex-1 p-3.5 rounded-2xl border ${
+            className={`flex-1 p-3.5 rounded-none border ${
               (metrics?.overdue_count ?? 0) > 0
                 ? "bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900"
                 : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700"
@@ -269,7 +269,7 @@ export default function UpcomingScreen() {
           </View>
 
           {/* Completed Card */}
-          <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-100 dark:border-slate-700">
+          <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-none border border-slate-100 dark:border-slate-700">
             <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Completed
             </Text>
@@ -298,7 +298,7 @@ export default function UpcomingScreen() {
                 <Text className="text-sm font-bold text-slate-800 dark:text-slate-200 flex-1">
                   {section.title}
                 </Text>
-                <View className={`px-2 py-0.5 rounded-full ${section.badgeBg}`}>
+                <View className={`px-2 py-0.5 rounded-none ${section.badgeBg}`}>
                   <Text className={`text-[11px] font-semibold ${section.badgeText}`}>
                     {section.data.length}
                   </Text>
@@ -314,14 +314,14 @@ export default function UpcomingScreen() {
                   <TouchableOpacity
                     key={item.id}
                     onPress={() => router.push(`/assignment/${item.id}`)}
-                    className="bg-white dark:bg-slate-800 p-4 rounded-2xl mb-3 border border-slate-100 dark:border-slate-700"
+                    className="bg-white dark:bg-slate-800 p-4 rounded-none mb-3 border border-slate-100 dark:border-slate-700"
                   >
                     {/* Top Row: Subject (Left) and Priority / Source (Right) */}
                     <View className="flex-row justify-between items-center mb-2.5">
                       <View className="flex-1 mr-2">
                         {item.subject ? (
                           <View
-                            className="px-2.5 py-1 rounded-full flex-row items-center self-start max-w-[85%]"
+                            className="px-2.5 py-1 rounded-none flex-row items-center self-start max-w-[85%]"
                             style={{ backgroundColor: `${subjectColor}15` }}
                           >
                             <View
@@ -338,7 +338,7 @@ export default function UpcomingScreen() {
                             </Text>
                           </View>
                         ) : (
-                          <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full self-start">
+                          <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-none self-start">
                             <Text className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                               General
                             </Text>
@@ -347,13 +347,13 @@ export default function UpcomingScreen() {
                       </View>
 
                       {item.priority.code === "HIGH" || item.priority.code === "URGENT" ? (
-                        <View className="bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-md border border-rose-200 dark:border-rose-900 flex-shrink-0">
+                        <View className="bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-none border border-rose-200 dark:border-rose-900 flex-shrink-0">
                           <Text className="text-[10px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
                             {item.priority.code === "URGENT" ? "Urgent" : "High"}
                           </Text>
                         </View>
                       ) : item.source === "TEAMS" ? (
-                        <View className="bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-900 flex-shrink-0">
+                        <View className="bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-none border border-indigo-200 dark:border-indigo-900 flex-shrink-0">
                           <Text className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
                             Teams
                           </Text>
@@ -373,7 +373,7 @@ export default function UpcomingScreen() {
                     <View className="flex-row items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-700/60">
                       {/* Due Countdown Tag with full breathing room */}
                       <View
-                        className={`px-2.5 py-1 rounded-xl flex-row items-center border ${
+                        className={`px-2.5 py-1 rounded-none flex-row items-center border ${
                           dueInfo.isOverdue
                             ? "bg-rose-50 dark:bg-rose-950/50 border-rose-200 dark:border-rose-800"
                             : dueInfo.isUrgent
@@ -402,7 +402,7 @@ export default function UpcomingScreen() {
                       {/* Right: Subtasks / Action Chevron */}
                       <View className="flex-row items-center ml-2">
                         {item.subtask_count > 0 && (
-                          <View className="flex-row items-center mr-2 bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-lg">
+                          <View className="flex-row items-center mr-2 bg-slate-100 dark:bg-slate-700/60 px-2 py-0.5 rounded-none">
                             <ListTodo size={11} color="#64748b" />
                             <Text className="text-[11px] text-slate-600 dark:text-slate-300 ml-1 font-medium">
                               {item.completed_subtask_count}/{item.subtask_count}
@@ -420,7 +420,7 @@ export default function UpcomingScreen() {
         ) : (
           /* Empty State: All caught up */
           <View className="py-20 justify-center items-center px-6">
-            <View className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 justify-center items-center mb-4">
+            <View className="w-16 h-16 rounded-none bg-emerald-100 dark:bg-emerald-950/60 justify-center items-center mb-4">
               <CheckCircle2 size={36} color="#059669" />
             </View>
             <Text className="text-lg font-bold text-slate-800 dark:text-white text-center mb-1">

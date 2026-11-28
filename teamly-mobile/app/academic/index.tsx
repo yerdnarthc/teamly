@@ -121,7 +121,7 @@ export default function AcademicSubjectsScreen() {
             onPress={() => router.back()}
             accessibilityLabel="Go back"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 justify-center items-center border border-slate-200 dark:border-slate-700 mr-3"
+            className="w-11 h-11 rounded-none bg-white dark:bg-slate-800 justify-center items-center border border-slate-200 dark:border-slate-700 mr-3"
           >
             <ArrowLeft size={18} color={isDark ? "#f8fafc" : "#0f172a"} />
           </TouchableOpacity>
@@ -179,7 +179,7 @@ export default function AcademicSubjectsScreen() {
                     onPress={() =>
                       setSelectedTermId(isSelected ? null : term.id)
                     }
-                    className={`p-4 rounded-3xl mb-2.5 border ${
+                    className={`p-4 rounded-none mb-2.5 border ${
                       isSelected
                         ? "bg-brand-50 dark:bg-brand-950/60 border-brand-500 dark:border-brand-500"
                         : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -197,7 +197,7 @@ export default function AcademicSubjectsScreen() {
                       </View>
 
                       <View
-                        className={`px-2.5 py-0.5 rounded-full ${
+                        className={`px-2.5 py-0.5 rounded-none ${
                           term.is_active
                             ? "bg-emerald-100 dark:bg-emerald-950/70"
                             : "bg-slate-100 dark:bg-slate-700"
@@ -245,11 +245,11 @@ export default function AcademicSubjectsScreen() {
                 <TouchableOpacity
                   key={subject.id}
                   onPress={() => handleOpenCourseAssignments(subject.id)}
-                  className="bg-white dark:bg-slate-800 rounded-3xl p-4 mb-3 border border-slate-200 dark:border-slate-700 flex-row items-center"
+                  className="bg-white dark:bg-slate-800 rounded-none p-4 mb-3 border border-slate-200 dark:border-slate-700 flex-row items-center"
                 >
                   {/* Color Accent Pill */}
                   <View
-                    className="w-2 self-stretch rounded-full mr-3.5"
+                    className="w-2 self-stretch rounded-none mr-3.5"
                     style={{ backgroundColor: accentColor }}
                   />
 
@@ -272,12 +272,12 @@ export default function AcademicSubjectsScreen() {
                     </Text>
 
                     <View className="flex-row items-center gap-2">
-                      <View className="bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-800">
+                      <View className="bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-none border border-blue-200 dark:border-blue-800">
                         <Text className="text-[11px] font-semibold text-blue-700 dark:text-blue-300">
                           {subject.active_assignment_count} active
                         </Text>
                       </View>
-                      <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">
+                      <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-none">
                         <Text className="text-[11px] font-medium text-slate-600 dark:text-slate-300">
                           {subject.assignment_count} total
                         </Text>
@@ -290,7 +290,7 @@ export default function AcademicSubjectsScreen() {
               );
             })
           ) : (
-            <View className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 items-center">
+            <View className="bg-white dark:bg-slate-800 rounded-none p-8 border border-slate-200 dark:border-slate-700 items-center">
               <BookOpen size={40} color="#94a3b8" />
               <Text className="text-base font-bold text-slate-800 dark:text-slate-200 mt-3 text-center">
                 No enrolled subjects found

@@ -132,7 +132,7 @@ export default function NewAssignmentScreen() {
           </Text>
           <TouchableOpacity
             onPress={() => router.back()}
-            className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 justify-center items-center"
+            className="w-9 h-9 rounded-none bg-slate-100 dark:bg-slate-800 justify-center items-center"
           >
             <X size={18} color="#64748b" />
           </TouchableOpacity>
@@ -152,7 +152,7 @@ export default function NewAssignmentScreen() {
               onChangeText={onChange}
               placeholder="e.g. Chapter 4 Lab Exercise"
               placeholderTextColor="#94a3b8"
-              className="border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-base text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800"
+              className="border border-slate-200 dark:border-slate-700 rounded-none px-4 py-3.5 text-base text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800"
             />
           )}
         />
@@ -178,7 +178,7 @@ export default function NewAssignmentScreen() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
                 <TouchableOpacity
                   onPress={() => onChange(null)}
-                  className={`mr-2.5 px-4 py-2.5 rounded-2xl border ${
+                  className={`mr-2.5 px-4 py-2.5 rounded-none border ${
                     value === null
                       ? "bg-brand-600 border-brand-600"
                       : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -199,7 +199,7 @@ export default function NewAssignmentScreen() {
                     <TouchableOpacity
                       key={sub.id}
                       onPress={() => onChange(sub.id)}
-                      className={`mr-2.5 px-4 py-2.5 rounded-2xl border flex-row items-center ${
+                      className={`mr-2.5 px-4 py-2.5 rounded-none border flex-row items-center ${
                         isSelected
                           ? "bg-brand-600 border-brand-600"
                           : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -241,7 +241,7 @@ export default function NewAssignmentScreen() {
                   <TouchableOpacity
                     key={p.code}
                     onPress={() => onChange(p.code)}
-                    className={`flex-1 py-3 rounded-2xl items-center border ${
+                    className={`flex-1 py-3 rounded-none items-center border ${
                       isSelected
                         ? "bg-brand-600 border-brand-600"
                         : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -300,7 +300,7 @@ export default function NewAssignmentScreen() {
               textAlignVertical="top"
               placeholder="Add assignment requirements, rubrics, or reminders..."
               placeholderTextColor="#94a3b8"
-              className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-base text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 min-h-[120px]"
+              className="border border-slate-200 dark:border-slate-700 rounded-none p-4 text-base text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 min-h-[120px]"
             />
           )}
         />
@@ -310,7 +310,7 @@ export default function NewAssignmentScreen() {
         <TouchableOpacity
           onPress={() => handleSubmit(onSubmit)()}
           disabled={createMutation.isPending}
-          className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm mb-8"
+          className="w-full bg-brand-600 py-4 rounded-none items-center shadow-sm mb-8"
         >
           {createMutation.isPending ? (
             <ActivityIndicator color="#ffffff" />

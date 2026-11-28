@@ -195,8 +195,8 @@ export default function ProfileScreen() {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {/* User Card */}
-        <View className="bg-white dark:bg-slate-800 p-6 rounded-3xl mb-5 border border-slate-100 dark:border-slate-700 items-center">
-          <View className="w-20 h-20 bg-brand-100 dark:bg-brand-900/50 rounded-full justify-center items-center mb-3">
+        <View className="bg-white dark:bg-slate-800 p-6 rounded-none mb-5 border border-slate-100 dark:border-slate-700 items-center">
+          <View className="w-20 h-20 bg-brand-100 dark:bg-brand-900/50 rounded-none justify-center items-center mb-3">
             <User size={36} color={isDark ? "#60a5fa" : "#2563eb"} />
           </View>
           <Text className="text-xl font-bold text-slate-900 dark:text-white">
@@ -213,7 +213,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* 1. Academic Profile Information (Editable) */}
-        <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5">
+        <View className="bg-white dark:bg-slate-800 rounded-none p-5 border border-slate-100 dark:border-slate-700 mb-5">
           <View className="flex-row items-center mb-1">
             <GraduationCap size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
             <Text className="text-base font-bold text-slate-900 dark:text-white ml-2">
@@ -225,7 +225,7 @@ export default function ProfileScreen() {
           </Text>
 
           {profileSuccessMsg && (
-            <View className="flex-row items-center bg-emerald-50 dark:bg-emerald-950/70 p-2.5 rounded-xl mb-3 border border-emerald-200 dark:border-emerald-800">
+            <View className="flex-row items-center bg-emerald-50 dark:bg-emerald-950/70 p-2.5 rounded-none mb-3 border border-emerald-200 dark:border-emerald-800">
               <CheckCircle2 size={15} color="#10b981" />
               <Text className="text-xs font-medium text-emerald-800 dark:text-emerald-200 ml-2">
                 {profileSuccessMsg}
@@ -244,7 +244,7 @@ export default function ProfileScreen() {
                 onChangeText={setFirstName}
                 placeholder="First Name"
                 placeholderTextColor="#94a3b8"
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white"
+                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none px-3 py-2.5 text-sm text-slate-900 dark:text-white"
               />
             </View>
             <View className="flex-1">
@@ -256,7 +256,7 @@ export default function ProfileScreen() {
                 onChangeText={setLastName}
                 placeholder="Last Name"
                 placeholderTextColor="#94a3b8"
-                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white"
+                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none px-3 py-2.5 text-sm text-slate-900 dark:text-white"
               />
             </View>
           </View>
@@ -273,7 +273,7 @@ export default function ProfileScreen() {
               placeholderTextColor="#94a3b8"
               multiline
               numberOfLines={2}
-              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm text-slate-900 dark:text-white"
+              className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-none px-3 py-2.5 text-sm text-slate-900 dark:text-white"
             />
           </View>
 
@@ -281,7 +281,7 @@ export default function ProfileScreen() {
           <TouchableOpacity
             onPress={handleSaveProfile}
             disabled={profileMutation.isPending}
-            className="w-full bg-brand-600 py-3 rounded-xl items-center flex-row justify-center"
+            className="w-full bg-brand-600 py-3 rounded-none items-center flex-row justify-center"
           >
             {profileMutation.isPending ? (
               <ActivityIndicator size="small" color="#ffffff" />
@@ -292,7 +292,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* 2. Notification & Deadline Alerts */}
-        <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5">
+        <View className="bg-white dark:bg-slate-800 rounded-none p-5 border border-slate-100 dark:border-slate-700 mb-5">
           <View className="flex-row items-center mb-1">
             <Bell size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
             <Text className="text-base font-bold text-slate-900 dark:text-white ml-2">
@@ -334,7 +334,7 @@ export default function ProfileScreen() {
                     <TouchableOpacity
                       key={opt.hours}
                       onPress={() => notifCoalesced.trigger({ lead_hours: opt.hours })}
-                      className={`flex-1 py-2 rounded-xl items-center border ${
+                      className={`flex-1 py-2 rounded-none items-center border ${
                         isSelected
                           ? "bg-brand-600 border-brand-600"
                           : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
@@ -384,7 +384,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* 3. 3-Way Theme Selector Card */}
-        <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5">
+        <View className="bg-white dark:bg-slate-800 rounded-none p-5 border border-slate-100 dark:border-slate-700 mb-5">
           <Text className="text-base font-bold text-slate-900 dark:text-white mb-1">
             Display Theme
           </Text>
@@ -393,11 +393,11 @@ export default function ProfileScreen() {
           </Text>
 
           {/* Segmented Controller */}
-          <View className="flex-row bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl">
+          <View className="flex-row bg-slate-100 dark:bg-slate-900 p-1.5 rounded-none">
             {/* System Option */}
             <Pressable
               onPress={() => handleSelectTheme("SYSTEM")}
-              className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center ${
+              className={`flex-1 py-2.5 rounded-none flex-row items-center justify-center ${
                 theme === "SYSTEM" ? "bg-brand-600" : ""
               }`}
             >
@@ -414,7 +414,7 @@ export default function ProfileScreen() {
             {/* Light Option */}
             <Pressable
               onPress={() => handleSelectTheme("LIGHT")}
-              className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center ${
+              className={`flex-1 py-2.5 rounded-none flex-row items-center justify-center ${
                 theme === "LIGHT" ? "bg-brand-600" : ""
               }`}
             >
@@ -431,7 +431,7 @@ export default function ProfileScreen() {
             {/* Dark Option */}
             <Pressable
               onPress={() => handleSelectTheme("DARK")}
-              className={`flex-1 py-2.5 rounded-xl flex-row items-center justify-center ${
+              className={`flex-1 py-2.5 rounded-none flex-row items-center justify-center ${
                 theme === "DARK" ? "bg-brand-600" : ""
               }`}
             >
@@ -450,10 +450,10 @@ export default function ProfileScreen() {
         {/* 4. Academic Subjects & Terms Card */}
         <TouchableOpacity
           onPress={() => router.push("/academic")}
-          className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5 flex-row items-center justify-between"
+          className="bg-white dark:bg-slate-800 rounded-none p-5 border border-slate-100 dark:border-slate-700 mb-5 flex-row items-center justify-between"
         >
           <View className="flex-row items-center flex-1 mr-3">
-            <View className="w-10 h-10 rounded-2xl bg-brand-50 dark:bg-brand-950/60 justify-center items-center border border-brand-200 dark:border-brand-800 mr-3">
+            <View className="w-10 h-10 rounded-none bg-brand-50 dark:bg-brand-950/60 justify-center items-center border border-brand-200 dark:border-brand-800 mr-3">
               <BookOpen size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
             <View className="flex-1">
@@ -469,7 +469,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {/* 5. Microsoft Teams Education Connection Card */}
-        <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-100 dark:border-slate-700 mb-5">
+        <View className="bg-white dark:bg-slate-800 rounded-none p-5 border border-slate-100 dark:border-slate-700 mb-5">
           <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center">
               <Share2 size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
@@ -478,7 +478,7 @@ export default function ProfileScreen() {
               </Text>
             </View>
             <View
-              className={`px-2 py-0.5 rounded-md ${
+              className={`px-2 py-0.5 rounded-none ${
                 profile?.microsoft_account?.is_connected
                   ? "bg-emerald-100 dark:bg-emerald-950/70"
                   : "bg-amber-100 dark:bg-amber-950/70"
@@ -514,7 +514,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* 5. Security & Hardware Keystore Info */}
-        <View className="bg-white dark:bg-slate-800 rounded-3xl p-4 border border-slate-100 dark:border-slate-700 mb-6">
+        <View className="bg-white dark:bg-slate-800 rounded-none p-4 border border-slate-100 dark:border-slate-700 mb-6">
           <View className="flex-row items-center p-1">
             <Shield size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
             <View className="ml-3">
@@ -531,7 +531,7 @@ export default function ProfileScreen() {
         {/* 6. Logout Button */}
         <TouchableOpacity
           onPress={handleLogout}
-          className="w-full bg-rose-50 dark:bg-rose-950/40 p-4 rounded-2xl flex-row items-center justify-center border border-rose-200 dark:border-rose-900 mb-8"
+          className="w-full bg-rose-50 dark:bg-rose-950/40 p-4 rounded-none flex-row items-center justify-center border border-rose-200 dark:border-rose-900 mb-8"
         >
           <LogOut size={18} color="#e11d48" />
           <Text className="text-rose-600 font-semibold text-base ml-2">Log Out</Text>

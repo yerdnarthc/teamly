@@ -262,7 +262,7 @@ export default function EditAssignmentScreen() {
         <Text className="text-slate-600 dark:text-slate-400 mb-4">Assignment not found.</Text>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="bg-brand-600 px-5 py-3 rounded-xl"
+          className="bg-brand-600 px-5 py-3 rounded-none"
         >
           <Text className="text-white font-semibold">Go Back</Text>
         </TouchableOpacity>
@@ -296,7 +296,7 @@ export default function EditAssignmentScreen() {
                 disabled={isBusy}
                 accessibilityLabel="Back to assignment details"
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                className="w-11 h-11 rounded-full bg-white dark:bg-slate-800 justify-center items-center border border-slate-200 dark:border-slate-700 mr-3"
+                className="w-11 h-11 rounded-none bg-white dark:bg-slate-800 justify-center items-center border border-slate-200 dark:border-slate-700 mr-3"
               >
                 <ArrowLeft size={18} color={isDark ? "#f8fafc" : "#0f172a"} />
               </TouchableOpacity>
@@ -310,7 +310,7 @@ export default function EditAssignmentScreen() {
               disabled={isBusy}
               accessibilityLabel="Delete assignment"
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              className="w-11 h-11 rounded-full bg-rose-50 dark:bg-rose-950/50 justify-center items-center border border-rose-200 dark:border-rose-900"
+              className="w-11 h-11 rounded-none bg-rose-50 dark:bg-rose-950/50 justify-center items-center border border-rose-200 dark:border-rose-900"
             >
               <Trash2 size={18} color="#e11d48" />
             </TouchableOpacity>
@@ -318,7 +318,7 @@ export default function EditAssignmentScreen() {
 
           {/* Teams Source Notice */}
           {assignment.source === "TEAMS" && (
-            <View className="flex-row items-start bg-blue-50 dark:bg-blue-950/40 p-3.5 rounded-2xl mb-5 border border-blue-200 dark:border-blue-900">
+            <View className="flex-row items-start bg-blue-50 dark:bg-blue-950/40 p-3.5 rounded-none mb-5 border border-blue-200 dark:border-blue-900">
               <Info size={16} color={isDark ? "#60a5fa" : "#2563eb"} className="mt-0.5" />
               <Text className="text-xs text-blue-800 dark:text-blue-200 ml-2.5 flex-1 leading-4">
                 Synced from Microsoft Teams. Your student status, priority, and notes are preserved across future syncs.
@@ -328,7 +328,7 @@ export default function EditAssignmentScreen() {
 
           {/* Inline Validation Banner */}
           {formErrorMessage && (
-            <View className="flex-row items-center bg-rose-50 dark:bg-rose-950/60 p-3.5 rounded-2xl mb-5 border border-rose-200 dark:border-rose-900">
+            <View className="flex-row items-center bg-rose-50 dark:bg-rose-950/60 p-3.5 rounded-none mb-5 border border-rose-200 dark:border-rose-900">
               <AlertCircle size={18} color="#e11d48" />
               <Text className="text-xs font-medium text-rose-800 dark:text-rose-200 ml-2.5 flex-1">
                 {formErrorMessage}
@@ -349,7 +349,7 @@ export default function EditAssignmentScreen() {
               )}
             </View>
             {isTeamsSource ? (
-              <View className="border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 bg-slate-100 dark:bg-slate-800/60">
+              <View className="border border-slate-200 dark:border-slate-700 rounded-none px-4 py-3.5 bg-slate-100 dark:bg-slate-800/60">
                 <Text className="text-base text-slate-700 dark:text-slate-300">
                   {watchedTitle}
                 </Text>
@@ -367,7 +367,7 @@ export default function EditAssignmentScreen() {
                     }}
                     placeholder="e.g. Chapter 4 Lab Exercise"
                     placeholderTextColor="#94a3b8"
-                    className="border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800"
+                    className="border border-slate-200 dark:border-slate-700 rounded-none px-4 py-3.5 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800"
                   />
                 )}
               />
@@ -383,14 +383,14 @@ export default function EditAssignmentScreen() {
               control={control}
               name="statusCode"
               render={({ field: { onChange, value } }) => (
-                <View className="flex-row bg-white dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <View className="flex-row bg-white dark:bg-slate-800 p-1.5 rounded-none border border-slate-200 dark:border-slate-700">
                   {STATUS_OPTIONS.map((opt) => {
                     const isSelected = value === opt.code;
                     return (
                       <TouchableOpacity
                         key={opt.code}
                         onPress={() => onChange(opt.code)}
-                        className={`flex-1 py-2.5 rounded-xl items-center justify-center ${
+                        className={`flex-1 py-2.5 rounded-none items-center justify-center ${
                           isSelected ? "bg-brand-600" : "bg-transparent"
                         }`}
                       >
@@ -425,7 +425,7 @@ export default function EditAssignmentScreen() {
                       <TouchableOpacity
                         key={p.code}
                         onPress={() => onChange(p.code)}
-                        className={`flex-1 py-3 rounded-2xl items-center border ${
+                        className={`flex-1 py-3 rounded-none items-center border ${
                           isSelected
                             ? "bg-brand-600 border-brand-600"
                             : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -461,7 +461,7 @@ export default function EditAssignmentScreen() {
                   <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
                     <TouchableOpacity
                       onPress={() => onChange(null)}
-                      className={`mr-2.5 px-4 py-2.5 rounded-2xl border ${
+                      className={`mr-2.5 px-4 py-2.5 rounded-none border ${
                         value === null
                           ? "bg-brand-600 border-brand-600"
                           : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -484,7 +484,7 @@ export default function EditAssignmentScreen() {
                         <TouchableOpacity
                           key={sub.id}
                           onPress={() => onChange(sub.id)}
-                          className={`mr-2.5 px-4 py-2.5 rounded-2xl border flex-row items-center ${
+                          className={`mr-2.5 px-4 py-2.5 rounded-none border flex-row items-center ${
                             isSelected
                               ? "bg-brand-600 border-brand-600"
                               : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
@@ -514,7 +514,7 @@ export default function EditAssignmentScreen() {
 
           {/* Deadline Editor Card */}
           {isTeamsSource ? (
-            <View className="mb-5 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-4">
+            <View className="mb-5 bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-none p-4">
               <View className="flex-row items-center justify-between mb-1">
                 <Text className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
                   Deadline
@@ -562,7 +562,7 @@ export default function EditAssignmentScreen() {
               )}
             </View>
             {isTeamsSource ? (
-              <View className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 bg-slate-100 dark:bg-slate-800/60 min-h-[100px]">
+              <View className="border border-slate-200 dark:border-slate-700 rounded-none p-4 bg-slate-100 dark:bg-slate-800/60 min-h-[100px]">
                 <Text className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                   {watchedInstructions || "No instructions provided."}
                 </Text>
@@ -580,7 +580,7 @@ export default function EditAssignmentScreen() {
                     textAlignVertical="top"
                     placeholder="Add assignment requirements, rubrics, or reminders..."
                     placeholderTextColor="#94a3b8"
-                    className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800 min-h-[120px]"
+                    className="border border-slate-200 dark:border-slate-700 rounded-none p-4 text-base text-slate-900 dark:text-white bg-white dark:bg-slate-800 min-h-[120px]"
                   />
                 )}
               />
@@ -591,7 +591,7 @@ export default function EditAssignmentScreen() {
           <TouchableOpacity
             onPress={() => handleSubmit(onSubmit)()}
             disabled={isBusy}
-            className="w-full bg-brand-600 py-4 rounded-2xl items-center flex-row justify-center mb-6"
+            className="w-full bg-brand-600 py-4 rounded-none items-center flex-row justify-center mb-6"
           >
             {updateMutation.isPending ? (
               <ActivityIndicator color="#ffffff" />
@@ -604,7 +604,7 @@ export default function EditAssignmentScreen() {
           </TouchableOpacity>
 
           {/* Danger Zone: Delete Assignment */}
-          <View className="bg-rose-50/70 dark:bg-rose-950/30 p-4 rounded-3xl border border-rose-200 dark:border-rose-900">
+          <View className="bg-rose-50/70 dark:bg-rose-950/30 p-4 rounded-none border border-rose-200 dark:border-rose-900">
             <Text className="text-sm font-bold text-rose-800 dark:text-rose-200 mb-1">
               Danger Zone
             </Text>
@@ -614,7 +614,7 @@ export default function EditAssignmentScreen() {
             <TouchableOpacity
               onPress={confirmDelete}
               disabled={isBusy}
-              className="w-full bg-rose-600 py-3.5 rounded-2xl items-center flex-row justify-center"
+              className="w-full bg-rose-600 py-3.5 rounded-none items-center flex-row justify-center"
             >
               {deleteMutation.isPending ? (
                 <ActivityIndicator color="#ffffff" />

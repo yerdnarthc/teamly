@@ -177,7 +177,7 @@ def estimate_assignment_study_profile(assignment: Assignment, ai_summary: AiSumm
         study_tip = "Split into 2 focused 30-min blocks and tackle core requirements first."
     elif priority_rank >= 2 or item_count >= 3:
         complexity = "Moderate"
-        study_tip = "Complete in one focused 45-min study session before starting new tasks."
+        study_tip = "Complete in one focused 45-min study session before starting new assignments."
     else:
         complexity = "Light"
         study_tip = "Quick win — knock this out in a single short sprint."
@@ -209,7 +209,7 @@ def build_workspace_insights(
 ) -> dict:
     """Aggregates cross-course AI workload complexity and study-time recommendations."""
     analyzed_count = len(summaries_with_profiles)
-    total_suggested_tasks = sum(
+    total_suggested_subtasks = sum(
         len(summary.suggested_subtasks or []) for summary, _ in summaries_with_profiles
     )
     active_items = [
@@ -247,7 +247,7 @@ def build_workspace_insights(
     return {
         "analyzed_count": analyzed_count,
         "pending_analysis_count": unanalyzed_count,
-        "total_suggested_tasks": total_suggested_tasks,
+        "total_suggested_subtasks": total_suggested_subtasks,
         "estimated_total_minutes": estimated_total_minutes,
         "complexity_level": complexity_level,
         "study_recommendation": study_recommendation,
