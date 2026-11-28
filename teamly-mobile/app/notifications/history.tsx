@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Alert,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -145,6 +145,48 @@ export default function NotificationHistoryScreen() {
   const showQueue = activeTab === "ALL" || activeTab === "QUEUE";
   const showLogs = activeTab === "ALL" || activeTab === "LOGS";
 
+  type NotificationListEntry =
+    | { type: "section-header"; key: string; kind: "queue" | "logs"; title: string }
+    | { type: "reminder"; key: string; item: ReminderItem }
+    | { type: "empty-queue"; key: string }
+    | { type: "log"; key: string; item: NotificationLogItem }
+    | { type: "empty-logs"; key: string };
+
+  const listData = useMemo<NotificationListEntry[]>(() => {
+    const entries: NotificationListEntry[] = [];
+    if (showQueue) {
+      entries.push({
+        type: "section-header",
+        key: "header-queue",
+        kind: "queue",
+        title: `Scheduled Reminders (${data?.reminders.length ?? 0})`,
+      });
+      if (data && data.reminders.length > 0) {
+        data.reminders.forEach((item) =>
+          entries.push({ type: "reminder", key: `rem-${item.id}`, item })
+        );
+      } else {
+        entries.push({ type: "empty-queue", key: "empty-queue" });
+      }
+    }
+    if (showLogs) {
+      entries.push({
+        type: "section-header",
+        key: "header-logs",
+        kind: "logs",
+        title: `Delivery History (${data?.logs.length ?? 0})`,
+      });
+      if (data && data.logs.length > 0) {
+        data.logs.forEach((item) =>
+          entries.push({ type: "log", key: `log-${item.id}`, item })
+        );
+      } else {
+        entries.push({ type: "empty-logs", key: "empty-logs" });
+      }
+    }
+    return entries;
+  }, [data, showQueue, showLogs]);
+
   return (
     <SafeAreaView
       edges={["top", "bottom", "left", "right"]}
@@ -220,9 +262,11 @@ export default function NotificationHistoryScreen() {
           </Text>
         </View>
       ) : (
-        <ScrollView
-          className="flex-1 px-5 pt-4"
-          contentContainerStyle={{ paddingBottom: 48 }}
+        <FlashList
+          data={listData}
+          keyExtractor={(item) => item.key}
+          getItemType={(item) => item.type}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 48 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -232,153 +276,90 @@ export default function NotificationHistoryScreen() {
               }}
             />
           }
-        >
-          {/* Summary Strip */}
-          <View className="flex-row gap-2.5 mb-5">
-            <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Queued
-              </Text>
-              <Text className="text-xl font-bold text-brand-600 dark:text-brand-400 mt-0.5">
-                {data?.summary.pending_count ?? 0}
-              </Text>
-            </View>
-            <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Delivered
-              </Text>
-              <Text className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">
-                {data?.summary.delivered_count ?? 0}
-              </Text>
-            </View>
-            <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Lead Time
-              </Text>
-              <Text className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">
-                {data?.summary.lead_hours ?? 24}h
-              </Text>
-            </View>
-          </View>
-
-          {/* Segmented Filter */}
-          <View className="flex-row bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-2xl mb-5 border border-slate-200 dark:border-slate-700">
-            {[
-              { key: "ALL" as ViewTab, label: "All" },
-              { key: "QUEUE" as ViewTab, label: "Scheduled Queue" },
-              { key: "LOGS" as ViewTab, label: "Delivery Log" },
-            ].map((tab) => {
-              const isSelected = activeTab === tab.key;
-              return (
-                <TouchableOpacity
-                  key={tab.key}
-                  onPress={() => setActiveTab(tab.key)}
-                  className={`flex-1 py-2 rounded-xl items-center ${
-                    isSelected ? "bg-brand-600" : "bg-transparent"
-                  }`}
-                >
-                  <Text
-                    className={`text-xs font-semibold ${
-                      isSelected
-                        ? "text-white"
-                        : "text-slate-600 dark:text-slate-300"
-                    }`}
-                  >
-                    {tab.label}
+          ListHeaderComponent={
+            <>
+              {/* Summary Strip */}
+              <View className="flex-row gap-2.5 mb-5">
+                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Queued
                   </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Scheduled Reminders Queue */}
-          {showQueue && (
-            <View className="mb-6">
-              <View className="flex-row items-center mb-2.5">
-                <Clock size={15} color={isDark ? "#60a5fa" : "#2563eb"} />
-                <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1.5">
-                  Scheduled Reminders ({data?.reminders.length ?? 0})
-                </Text>
+                  <Text className="text-xl font-bold text-brand-600 dark:text-brand-400 mt-0.5">
+                    {data?.summary.pending_count ?? 0}
+                  </Text>
+                </View>
+                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Delivered
+                  </Text>
+                  <Text className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">
+                    {data?.summary.delivered_count ?? 0}
+                  </Text>
+                </View>
+                <View className="flex-1 bg-white dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Lead Time
+                  </Text>
+                  <Text className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">
+                    {data?.summary.lead_hours ?? 24}h
+                  </Text>
+                </View>
               </View>
 
-              {data && data.reminders.length > 0 ? (
-                data.reminders.map((rem) => {
-                  const isDismissing = dismissingId === rem.id;
+              {/* Segmented Filter */}
+              <View className="flex-row bg-slate-200/70 dark:bg-slate-800 p-1.5 rounded-2xl mb-5 border border-slate-200 dark:border-slate-700">
+                {[
+                  { key: "ALL" as ViewTab, label: "All" },
+                  { key: "QUEUE" as ViewTab, label: "Scheduled Queue" },
+                  { key: "LOGS" as ViewTab, label: "Delivery Log" },
+                ].map((tab) => {
+                  const isSelected = activeTab === tab.key;
                   return (
-                    <View
-                      key={rem.id}
-                      className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-2.5 border border-slate-200 dark:border-slate-700"
+                    <TouchableOpacity
+                      key={tab.key}
+                      onPress={() => setActiveTab(tab.key)}
+                      className={`flex-1 py-2 rounded-xl items-center ${
+                        isSelected ? "bg-brand-600" : "bg-transparent"
+                      }`}
                     >
-                      <View className="flex-row items-center justify-between mb-2">
-                        <View className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-full border border-brand-200 dark:border-brand-800">
-                          {rem.channel === "EMAIL" ? (
-                            <Mail size={11} color={isDark ? "#93c5fd" : "#2563eb"} />
-                          ) : (
-                            <Bell size={11} color={isDark ? "#93c5fd" : "#2563eb"} />
-                          )}
-                          <Text className="text-[11px] font-bold text-brand-700 dark:text-brand-300 ml-1.5">
-                            {rem.channel === "EMAIL" ? "Email" : "In-App"} ·{" "}
-                            {formatTimestamp(rem.remind_at)}
-                          </Text>
-                        </View>
-
-                        <TouchableOpacity
-                          onPress={() => dismissMutation.mutate(rem.id)}
-                          disabled={isDismissing}
-                          accessibilityLabel="Dismiss scheduled reminder"
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                          className="flex-row items-center px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-700"
-                        >
-                          {isDismissing ? (
-                            <ActivityIndicator size="small" color="#64748b" />
-                          ) : (
-                            <>
-                              <BellOff size={12} color={isDark ? "#cbd5e1" : "#475569"} />
-                              <Text className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 ml-1">
-                                Dismiss
-                              </Text>
-                            </>
-                          )}
-                        </TouchableOpacity>
-                      </View>
-
-                      <TouchableOpacity
-                        disabled={!rem.assignment}
-                        onPress={() => {
-                          if (rem.assignment) {
-                            router.push(`/assignment/${rem.assignment.id}`);
-                          }
-                        }}
-                        className="flex-row items-center justify-between"
+                      <Text
+                        className={`text-xs font-semibold ${
+                          isSelected
+                            ? "text-white"
+                            : "text-slate-600 dark:text-slate-300"
+                        }`}
                       >
-                        <View className="flex-1 mr-2">
-                          <Text
-                            className="text-sm font-bold text-slate-900 dark:text-white"
-                            numberOfLines={2}
-                          >
-                            {rem.assignment?.title || "Scheduled Assignment"}
-                          </Text>
-                          {rem.assignment?.subject_name && (
-                            <Text
-                              className="text-xs font-medium mt-0.5"
-                              style={{
-                                color: rem.assignment.subject_color || "#3b82f6",
-                              }}
-                              numberOfLines={1}
-                            >
-                              {rem.assignment.subject_name}
-                            </Text>
-                          )}
-                        </View>
-                        {rem.assignment && (
-                          <ChevronRight size={16} color="#94a3b8" />
-                        )}
-                      </TouchableOpacity>
-                    </View>
+                        {tab.label}
+                      </Text>
+                    </TouchableOpacity>
                   );
-                })
-              ) : (
-                <View className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 items-center">
+                })}
+              </View>
+            </>
+          }
+          renderItem={({ item }) => {
+            if (item.type === "section-header") {
+              return (
+                <View
+                  className={`flex-row items-center mb-2.5 ${
+                    item.kind === "logs" && showQueue ? "mt-3.5" : ""
+                  }`}
+                >
+                  {item.kind === "queue" ? (
+                    <Clock size={15} color={isDark ? "#60a5fa" : "#2563eb"} />
+                  ) : (
+                    <Send size={15} color={isDark ? "#60a5fa" : "#2563eb"} />
+                  )}
+                  <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1.5">
+                    {item.title}
+                  </Text>
+                </View>
+              );
+            }
+
+            if (item.type === "empty-queue") {
+              return (
+                <View className="bg-white dark:bg-slate-800 rounded-2xl p-6 mb-3 border border-slate-200 dark:border-slate-700 items-center">
                   <Bell size={32} color="#94a3b8" />
                   <Text className="text-sm font-bold text-slate-800 dark:text-white mt-2">
                     No Scheduled Reminders
@@ -387,82 +368,144 @@ export default function NotificationHistoryScreen() {
                     Reminders are automatically queued when assignments have deadlines and alerts are enabled.
                   </Text>
                 </View>
-              )}
-            </View>
-          )}
+              );
+            }
 
-          {/* Delivery Log */}
-          {showLogs && (
-            <View className="mb-4">
-              <View className="flex-row items-center mb-2.5">
-                <Send size={15} color={isDark ? "#60a5fa" : "#2563eb"} />
-                <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1.5">
-                  Delivery History ({data?.logs.length ?? 0})
-                </Text>
-              </View>
-
-              {data && data.logs.length > 0 ? (
-                data.logs.map((log) => {
-                  const badge = getLogKindBadge(log.kind);
-                  return (
-                    <TouchableOpacity
-                      key={log.id}
-                      disabled={!log.assignment}
-                      onPress={() => {
-                        if (log.assignment) {
-                          router.push(`/assignment/${log.assignment.id}`);
-                        }
-                      }}
-                      className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-2.5 border border-slate-200 dark:border-slate-700"
-                    >
-                      <View className="flex-row items-center justify-between mb-1.5">
-                        <View className={`px-2.5 py-0.5 rounded-full ${badge.bg}`}>
-                          <Text className={`text-[11px] font-bold ${badge.text}`}>
-                            {badge.label}
-                          </Text>
-                        </View>
-                        <Text className="text-[11px] text-slate-500 dark:text-slate-400">
-                          {formatTimestamp(log.sent_at)}
-                        </Text>
-                      </View>
-
-                      <View className="flex-row items-center justify-between">
-                        <View className="flex-1 mr-2">
-                          <Text
-                            className="text-sm font-bold text-slate-900 dark:text-white"
-                            numberOfLines={2}
-                          >
-                            {log.assignment?.title || "System Notification"}
-                          </Text>
-                          {log.assignment?.subject_name && (
-                            <Text
-                              className="text-xs font-medium mt-0.5"
-                              style={{
-                                color: log.assignment.subject_color || "#3b82f6",
-                              }}
-                              numberOfLines={1}
-                            >
-                              {log.assignment.subject_name}
-                            </Text>
-                          )}
-                        </View>
-                        {log.assignment && (
-                          <ChevronRight size={16} color="#94a3b8" />
-                        )}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })
-              ) : (
+            if (item.type === "empty-logs") {
+              return (
                 <View className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 items-center">
                   <Text className="text-xs text-slate-500 dark:text-slate-400">
                     No notifications have been delivered yet.
                   </Text>
                 </View>
-              )}
-            </View>
-          )}
-        </ScrollView>
+              );
+            }
+
+            if (item.type === "reminder") {
+              const rem = item.item;
+              const isDismissing = dismissingId === rem.id;
+              return (
+                <View className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-2.5 border border-slate-200 dark:border-slate-700">
+                  <View className="flex-row items-center justify-between mb-2">
+                    <View className="flex-row items-center bg-brand-50 dark:bg-brand-950/60 px-2.5 py-1 rounded-full border border-brand-200 dark:border-brand-800">
+                      {rem.channel === "EMAIL" ? (
+                        <Mail size={11} color={isDark ? "#93c5fd" : "#2563eb"} />
+                      ) : (
+                        <Bell size={11} color={isDark ? "#93c5fd" : "#2563eb"} />
+                      )}
+                      <Text className="text-[11px] font-bold text-brand-700 dark:text-brand-300 ml-1.5">
+                        {rem.channel === "EMAIL" ? "Email" : "In-App"} ·{" "}
+                        {formatTimestamp(rem.remind_at)}
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => dismissMutation.mutate(rem.id)}
+                      disabled={isDismissing}
+                      accessibilityLabel="Dismiss scheduled reminder"
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      className="flex-row items-center px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-700"
+                    >
+                      {isDismissing ? (
+                        <ActivityIndicator size="small" color="#64748b" />
+                      ) : (
+                        <>
+                          <BellOff size={12} color={isDark ? "#cbd5e1" : "#475569"} />
+                          <Text className="text-[11px] font-semibold text-slate-700 dark:text-slate-200 ml-1">
+                            Dismiss
+                          </Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    disabled={!rem.assignment}
+                    onPress={() => {
+                      if (rem.assignment) {
+                        router.push(`/assignment/${rem.assignment.id}`);
+                      }
+                    }}
+                    className="flex-row items-center justify-between"
+                  >
+                    <View className="flex-1 mr-2">
+                      <Text
+                        className="text-sm font-bold text-slate-900 dark:text-white"
+                        numberOfLines={2}
+                      >
+                        {rem.assignment?.title || "Scheduled Assignment"}
+                      </Text>
+                      {rem.assignment?.subject_name && (
+                        <Text
+                          className="text-xs font-medium mt-0.5"
+                          style={{
+                            color: rem.assignment.subject_color || "#3b82f6",
+                          }}
+                          numberOfLines={1}
+                        >
+                          {rem.assignment.subject_name}
+                        </Text>
+                      )}
+                    </View>
+                    {rem.assignment && (
+                      <ChevronRight size={16} color="#94a3b8" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              );
+            }
+
+            const log = item.item;
+            const badge = getLogKindBadge(log.kind);
+            return (
+              <TouchableOpacity
+                disabled={!log.assignment}
+                onPress={() => {
+                  if (log.assignment) {
+                    router.push(`/assignment/${log.assignment.id}`);
+                  }
+                }}
+                className="bg-white dark:bg-slate-800 rounded-2xl p-4 mb-2.5 border border-slate-200 dark:border-slate-700"
+              >
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <View className={`px-2.5 py-0.5 rounded-full ${badge.bg}`}>
+                    <Text className={`text-[11px] font-bold ${badge.text}`}>
+                      {badge.label}
+                    </Text>
+                  </View>
+                  <Text className="text-[11px] text-slate-500 dark:text-slate-400">
+                    {formatTimestamp(log.sent_at)}
+                  </Text>
+                </View>
+
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1 mr-2">
+                    <Text
+                      className="text-sm font-bold text-slate-900 dark:text-white"
+                      numberOfLines={2}
+                    >
+                      {log.assignment?.title || "System Notification"}
+                    </Text>
+                    {log.assignment?.subject_name && (
+                      <Text
+                        className="text-xs font-medium mt-0.5"
+                        style={{
+                          color: log.assignment.subject_color || "#3b82f6",
+                        }}
+                        numberOfLines={1}
+                      >
+                        {log.assignment.subject_name}
+                      </Text>
+                    )}
+                  </View>
+                  {log.assignment && (
+                    <ChevronRight size={16} color="#94a3b8" />
+                  )}
+                </View>
+              </TouchableOpacity>
+            );
+          }}
+        />
       )}
     </SafeAreaView>
   );

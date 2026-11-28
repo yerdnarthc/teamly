@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -13,9 +13,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useColorScheme } from "nativewind";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { apiClient } from "../../src/services/apiClient";
 import { useThemeStore } from "../../src/stores/themeStore";
 import { DeadlinePickerCard } from "../../src/components/DeadlinePickerCard";
+import { PRIORITY_OPTIONS } from "../../src/constants/assignmentLabels";
+import {
+  assignmentFormSchema,
+  type AssignmentFormValues,
+} from "../../src/schemas/assignmentSchema";
 
 interface SubjectOption {
   id: number;
@@ -30,16 +37,26 @@ export default function NewAssignmentScreen() {
   const theme = useThemeStore((state) => state.theme);
   const isDark = colorScheme === "dark" || theme === "DARK";
 
-  const [title, setTitle] = useState("");
-  const [instructions, setInstructions] = useState("");
-  const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(null);
-  const [priorityCode, setPriorityCode] = useState<"URGENT" | "HIGH" | "MEDIUM" | "LOW">("MEDIUM");
-  const [hasDeadline, setHasDeadline] = useState(false);
-  const [dueDate, setDueDate] = useState<Date>(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(23, 59, 0, 0);
-    return d;
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<AssignmentFormValues>({
+    resolver: zodResolver(assignmentFormSchema),
+    defaultValues: {
+      title: "",
+      instructions: "",
+      subjectId: null,
+      statusCode: "NOT_STARTED",
+      priorityCode: "MEDIUM",
+      hasDeadline: false,
+      dueDate: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        d.setHours(23, 59, 0, 0);
+        return d;
+      })(),
+    },
   });
 
   // Fetch student's enrolled subjects for the picker
@@ -90,19 +107,14 @@ export default function NewAssignmentScreen() {
     },
   });
 
-  const handleSubmit = () => {
-    if (!title.trim()) {
-      Alert.alert("Validation", "Please provide an assignment title.");
-      return;
-    }
-
+  const onSubmit = (values: AssignmentFormValues) => {
     createMutation.mutate({
-      title: title.trim(),
-      instructions: instructions.trim(),
-      subject_id: selectedSubjectId,
-      priority_code: priorityCode,
+      title: values.title.trim(),
+      instructions: values.instructions.trim(),
+      subject_id: values.subjectId,
+      priority_code: values.priorityCode,
       status_code: "NOT_STARTED",
-      due_at: hasDeadline ? dueDate.toISOString() : null,
+      due_at: values.hasDeadline ? values.dueDate.toISOString() : null,
     });
   };
 
@@ -131,13 +143,24 @@ export default function NewAssignmentScreen() {
         <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
           Assignment Title *
         </Text>
-        <TextInput
-          value={title}
-          onChangeText={setTitle}
-          placeholder="e.g. Chapter 4 Lab Exercise"
-          placeholderTextColor="#94a3b8"
-          className="border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-base text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800"
+        <Controller
+          control={control}
+          name="title"
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              value={value}
+              onChangeText={onChange}
+              placeholder="e.g. Chapter 4 Lab Exercise"
+              placeholderTextColor="#94a3b8"
+              className="border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3.5 text-base text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800"
+            />
+          )}
         />
+        {errors.title?.message && (
+          <Text className="text-xs font-medium text-rose-600 dark:text-rose-400 mt-1.5">
+            {errors.title.message}
+          </Text>
+        )}
       </View>
 
       {/* Subject Picker */}
@@ -148,51 +171,57 @@ export default function NewAssignmentScreen() {
         {loadingSubjects ? (
           <ActivityIndicator size="small" color="#2563eb" />
         ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-            <TouchableOpacity
-              onPress={() => setSelectedSubjectId(null)}
-              className={`mr-2.5 px-4 py-2.5 rounded-2xl border ${
-                selectedSubjectId === null
-                  ? "bg-brand-600 border-brand-600"
-                  : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-              }`}
-            >
-              <Text
-                className={`text-sm font-medium ${
-                  selectedSubjectId === null ? "text-white font-semibold" : "text-slate-700 dark:text-slate-300"
-                }`}
-              >
-                General / None
-              </Text>
-            </TouchableOpacity>
-
-            {subjects?.map((sub) => {
-              const isSelected = selectedSubjectId === sub.id;
-              return (
+          <Controller
+            control={control}
+            name="subjectId"
+            render={({ field: { onChange, value } }) => (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
                 <TouchableOpacity
-                  key={sub.id}
-                  onPress={() => setSelectedSubjectId(sub.id)}
-                  className={`mr-2.5 px-4 py-2.5 rounded-2xl border flex-row items-center ${
-                    isSelected
+                  onPress={() => onChange(null)}
+                  className={`mr-2.5 px-4 py-2.5 rounded-2xl border ${
+                    value === null
                       ? "bg-brand-600 border-brand-600"
                       : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                   }`}
                 >
-                  <View
-                    className="w-2.5 h-2.5 rounded-full mr-2"
-                    style={{ backgroundColor: sub.color || "#3b82f6" }}
-                  />
                   <Text
-                    className={`text-sm ${
-                      isSelected ? "text-white font-semibold" : "text-slate-700 dark:text-slate-300 font-medium"
+                    className={`text-sm font-medium ${
+                      value === null ? "text-white font-semibold" : "text-slate-700 dark:text-slate-300"
                     }`}
                   >
-                    {sub.name}
+                    General / None
                   </Text>
                 </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+
+                {subjects?.map((sub) => {
+                  const isSelected = value === sub.id;
+                  return (
+                    <TouchableOpacity
+                      key={sub.id}
+                      onPress={() => onChange(sub.id)}
+                      className={`mr-2.5 px-4 py-2.5 rounded-2xl border flex-row items-center ${
+                        isSelected
+                          ? "bg-brand-600 border-brand-600"
+                          : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                      }`}
+                    >
+                      <View
+                        className="w-2.5 h-2.5 rounded-full mr-2"
+                        style={{ backgroundColor: sub.color || "#3b82f6" }}
+                      />
+                      <Text
+                        className={`text-sm ${
+                          isSelected ? "text-white font-semibold" : "text-slate-700 dark:text-slate-300 font-medium"
+                        }`}
+                      >
+                        {sub.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+          />
         )}
       </View>
 
@@ -201,44 +230,57 @@ export default function NewAssignmentScreen() {
         <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           Priority Level
         </Text>
-        <View className="flex-row gap-2">
-          {[
-            { code: "LOW", label: "Low" },
-            { code: "MEDIUM", label: "Medium" },
-            { code: "HIGH", label: "High" },
-            { code: "URGENT", label: "Urgent" },
-          ].map((p) => {
-            const isSelected = priorityCode === p.code;
-            return (
-              <TouchableOpacity
-                key={p.code}
-                onPress={() => setPriorityCode(p.code as any)}
-                className={`flex-1 py-3 rounded-2xl items-center border ${
-                  isSelected
-                    ? "bg-brand-600 border-brand-600"
-                    : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                }`}
-              >
-                <Text
-                  className={`font-semibold text-sm ${
-                    isSelected ? "text-white" : "text-slate-700 dark:text-slate-300"
-                  }`}
-                >
-                  {p.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <Controller
+          control={control}
+          name="priorityCode"
+          render={({ field: { onChange, value } }) => (
+            <View className="flex-row gap-2">
+              {PRIORITY_OPTIONS.map((p) => {
+                const isSelected = value === p.code;
+                return (
+                  <TouchableOpacity
+                    key={p.code}
+                    onPress={() => onChange(p.code)}
+                    className={`flex-1 py-3 rounded-2xl items-center border ${
+                      isSelected
+                        ? "bg-brand-600 border-brand-600"
+                        : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                    }`}
+                  >
+                    <Text
+                      className={`font-semibold text-sm ${
+                        isSelected ? "text-white" : "text-slate-700 dark:text-slate-300"
+                      }`}
+                    >
+                      {p.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        />
       </View>
 
       {/* Deadline Picker */}
-      <DeadlinePickerCard
-        hasDeadline={hasDeadline}
-        onToggleDeadline={setHasDeadline}
-        value={dueDate}
-        onChange={setDueDate}
-        isDark={isDark}
+      <Controller
+        control={control}
+        name="hasDeadline"
+        render={({ field: { onChange: onToggleDeadline, value: hasDeadlineVal } }) => (
+          <Controller
+            control={control}
+            name="dueDate"
+            render={({ field: { onChange: onChangeDueDate, value: dueDateVal } }) => (
+              <DeadlinePickerCard
+                hasDeadline={hasDeadlineVal}
+                onToggleDeadline={onToggleDeadline}
+                value={dueDateVal}
+                onChange={onChangeDueDate}
+                isDark={isDark}
+              />
+            )}
+          />
+        )}
       />
 
       {/* Instructions / Notes */}
@@ -246,21 +288,27 @@ export default function NewAssignmentScreen() {
         <Text className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
           Instructions & Notes
         </Text>
-        <TextInput
-          value={instructions}
-          onChangeText={setInstructions}
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-          placeholder="Add assignment requirements, rubrics, or reminders..."
-          placeholderTextColor="#94a3b8"
-          className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-base text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 min-h-[120px]"
+        <Controller
+          control={control}
+          name="instructions"
+          render={({ field: { onChange, value } }) => (
+            <TextInput
+              value={value}
+              onChangeText={onChange}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              placeholder="Add assignment requirements, rubrics, or reminders..."
+              placeholderTextColor="#94a3b8"
+              className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 text-base text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 min-h-[120px]"
+            />
+          )}
         />
       </View>
 
         {/* Submit Button */}
         <TouchableOpacity
-          onPress={handleSubmit}
+          onPress={() => handleSubmit(onSubmit)()}
           disabled={createMutation.isPending}
           className="w-full bg-brand-600 py-4 rounded-2xl items-center shadow-sm mb-8"
         >

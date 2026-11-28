@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { FlashList } from "@shopify/flash-list";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useColorScheme } from "nativewind";
 import {
@@ -321,9 +322,10 @@ export default function AiAssistantWorkspaceScreen() {
         </View>
       )}
 
-      <ScrollView
-        className="flex-1 px-5 pt-3"
-        contentContainerStyle={{ paddingBottom: 100 }}
+      <FlashList
+        data={filteredSummaries}
+        keyExtractor={(item) => String(item.id)}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -333,455 +335,237 @@ export default function AiAssistantWorkspaceScreen() {
             }}
           />
         }
-      >
-        {/* Insights Hero Card */}
-        <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 mb-5">
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center">
-              <View className="w-9 h-9 rounded-2xl bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 justify-center items-center mr-2.5">
-                <Brain size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
+        ListHeaderComponent={
+          <>
+            {/* Insights Hero Card */}
+            <View className="bg-white dark:bg-slate-800 rounded-3xl p-5 border border-slate-200 dark:border-slate-700 mb-5">
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <View className="w-9 h-9 rounded-2xl bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 justify-center items-center mr-2.5">
+                    <Brain size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
+                  </View>
+                  <View>
+                    <Text className="text-base font-bold text-slate-900 dark:text-white">
+                      Workload & Study Advisor
+                    </Text>
+                    <Text className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Cross-course AI breakdown
+                    </Text>
+                  </View>
+                </View>
+
+                {insights && (
+                  <View
+                    className={`px-2.5 py-1 rounded-full ${
+                      insights.complexity_level === "Heavy"
+                        ? "bg-rose-100 dark:bg-rose-950/60"
+                        : insights.complexity_level === "Balanced"
+                        ? "bg-amber-100 dark:bg-amber-950/60"
+                        : "bg-emerald-100 dark:bg-emerald-950/60"
+                    }`}
+                  >
+                    <Text
+                      className={`text-[11px] font-bold uppercase tracking-wider ${
+                        insights.complexity_level === "Heavy"
+                          ? "text-rose-700 dark:text-rose-300"
+                          : insights.complexity_level === "Balanced"
+                          ? "text-amber-700 dark:text-amber-300"
+                          : "text-emerald-700 dark:text-emerald-300"
+                      }`}
+                    >
+                      {insights.complexity_level}
+                    </Text>
+                  </View>
+                )}
               </View>
-              <View>
-                <Text className="text-base font-bold text-slate-900 dark:text-white">
-                  Workload & Study Advisor
-                </Text>
-                <Text className="text-[11px] text-slate-500 dark:text-slate-400">
-                  Cross-course AI breakdown
+
+              {/* Metrics Row */}
+              <View className="flex-row gap-2.5 mb-3.5">
+                <View className="flex-1 bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-700">
+                  <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Est. Study
+                  </Text>
+                  <Text className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
+                    {formatDuration(insights?.estimated_total_minutes ?? 0)}
+                  </Text>
+                </View>
+                <View className="flex-1 bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-700">
+                  <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Analyzed
+                  </Text>
+                  <Text className="text-lg font-bold text-brand-600 dark:text-brand-400 mt-0.5">
+                    {insights?.analyzed_count ?? 0}
+                  </Text>
+                </View>
+                <View className="flex-1 bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-700">
+                  <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Pending AI
+                  </Text>
+                  <Text className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
+                    {insights?.pending_analysis_count ?? 0}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Study Recommendation Banner */}
+              <View className="bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800/70 rounded-2xl p-3.5">
+                <Text className="text-xs text-slate-700 dark:text-slate-200 leading-5">
+                  {insights?.study_recommendation}
                 </Text>
               </View>
+
+              {/* AI Assistance Disclaimer */}
+              <Text className="text-[11px] text-slate-400 dark:text-slate-500 mt-2.5 leading-4">
+                AI Disclaimer: Summaries and task suggestions are assistive study aids and do not replace official professor instructions or Teams deadlines.
+              </Text>
+
+              {unanalyzed.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => analyzeAllMutation.mutate()}
+                  disabled={analyzeAllMutation.isPending}
+                  className="mt-3.5 w-full bg-brand-600 py-3 rounded-2xl flex-row items-center justify-center"
+                >
+                  {analyzeAllMutation.isPending ? (
+                    <ActivityIndicator size="small" color="#ffffff" />
+                  ) : (
+                    <>
+                      <Sparkles size={16} color="#ffffff" />
+                      <Text className="text-white font-semibold text-sm ml-2">
+                        Analyze All Active ({unanalyzed.length})
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              )}
             </View>
 
-            {insights && (
-              <View
-                className={`px-2.5 py-1 rounded-full ${
-                  insights.complexity_level === "Heavy"
-                    ? "bg-rose-100 dark:bg-rose-950/60"
-                    : insights.complexity_level === "Balanced"
-                    ? "bg-amber-100 dark:bg-amber-950/60"
-                    : "bg-emerald-100 dark:bg-emerald-950/60"
-                }`}
-              >
-                <Text
-                  className={`text-[11px] font-bold uppercase tracking-wider ${
-                    insights.complexity_level === "Heavy"
-                      ? "text-rose-700 dark:text-rose-300"
-                      : insights.complexity_level === "Balanced"
-                      ? "text-amber-700 dark:text-amber-300"
-                      : "text-emerald-700 dark:text-emerald-300"
-                  }`}
-                >
-                  {insights.complexity_level}
-                </Text>
+            {/* Pending Assignments Awaiting AI Analysis */}
+            {unanalyzed.length > 0 && (
+              <View className="mb-6">
+                <View className="flex-row items-center mb-2.5">
+                  <Zap size={15} color={isDark ? "#fbbf24" : "#d97706"} />
+                  <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1.5">
+                    Ready for AI Breakdown ({unanalyzed.length})
+                  </Text>
+                </View>
+
+                <FlashList
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  data={unanalyzed}
+                  keyExtractor={(item) => String(item.id)}
+                  renderItem={({ item }) => {
+                    const isBusy = analyzingId === item.id;
+                    return (
+                      <View className="w-60 bg-white dark:bg-slate-800 rounded-2xl p-3.5 mr-3 border border-slate-200 dark:border-slate-700 justify-between">
+                        <View>
+                          {item.subject && (
+                            <Text
+                              className="text-[11px] font-bold mb-1"
+                              style={{ color: item.subject.color || "#3b82f6" }}
+                              numberOfLines={1}
+                            >
+                              {item.subject.name}
+                            </Text>
+                          )}
+                          <Text
+                            className="text-sm font-bold text-slate-900 dark:text-white mb-3"
+                            numberOfLines={2}
+                          >
+                            {item.title}
+                          </Text>
+                        </View>
+
+                        <TouchableOpacity
+                          onPress={() => analyzeOneMutation.mutate(item.id)}
+                          disabled={isBusy}
+                          className="bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 py-2 rounded-xl flex-row items-center justify-center"
+                        >
+                          {isBusy ? (
+                            <ActivityIndicator
+                              size="small"
+                              color={isDark ? "#93c5fd" : "#2563eb"}
+                            />
+                          ) : (
+                            <>
+                              <Sparkles
+                                size={14}
+                                color={isDark ? "#93c5fd" : "#2563eb"}
+                              />
+                              <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 ml-1.5">
+                                Analyze
+                              </Text>
+                            </>
+                          )}
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  }}
+                />
               </View>
             )}
-          </View>
 
-          {/* Metrics Row */}
-          <View className="flex-row gap-2.5 mb-3.5">
-            <View className="flex-1 bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-700">
-              <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Est. Study
-              </Text>
-              <Text className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
-                {formatDuration(insights?.estimated_total_minutes ?? 0)}
-              </Text>
-            </View>
-            <View className="flex-1 bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-700">
-              <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Analyzed
-              </Text>
-              <Text className="text-lg font-bold text-brand-600 dark:text-brand-400 mt-0.5">
-                {insights?.analyzed_count ?? 0}
-              </Text>
-            </View>
-            <View className="flex-1 bg-slate-50 dark:bg-slate-900 p-3 rounded-2xl border border-slate-100 dark:border-slate-700">
-              <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Pending AI
-              </Text>
-              <Text className="text-lg font-bold text-slate-900 dark:text-white mt-0.5">
-                {insights?.pending_analysis_count ?? 0}
-              </Text>
-            </View>
-          </View>
-
-          {/* Study Recommendation Banner */}
-          <View className="bg-brand-50 dark:bg-brand-950/50 border border-brand-200 dark:border-brand-800/70 rounded-2xl p-3.5">
-            <Text className="text-xs text-slate-700 dark:text-slate-200 leading-5">
-              {insights?.study_recommendation}
-            </Text>
-          </View>
-
-          {/* AI Assistance Disclaimer */}
-          <Text className="text-[11px] text-slate-400 dark:text-slate-500 mt-2.5 leading-4">
-            AI Disclaimer: Summaries and task suggestions are assistive study aids and do not replace official professor instructions or Teams deadlines.
-          </Text>
-
-          {unanalyzed.length > 0 && (
-            <TouchableOpacity
-              onPress={() => analyzeAllMutation.mutate()}
-              disabled={analyzeAllMutation.isPending}
-              className="mt-3.5 w-full bg-brand-600 py-3 rounded-2xl flex-row items-center justify-center"
-            >
-              {analyzeAllMutation.isPending ? (
-                <ActivityIndicator size="small" color="#ffffff" />
-              ) : (
-                <>
-                  <Sparkles size={16} color="#ffffff" />
-                  <Text className="text-white font-semibold text-sm ml-2">
-                    Analyze All Active ({unanalyzed.length})
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* Pending Assignments Awaiting AI Analysis */}
-        {unanalyzed.length > 0 && (
-          <View className="mb-6">
-            <View className="flex-row items-center mb-2.5">
-              <Zap size={15} color={isDark ? "#fbbf24" : "#d97706"} />
-              <Text className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1.5">
-                Ready for AI Breakdown ({unanalyzed.length})
-              </Text>
-            </View>
-
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {unanalyzed.map((item) => {
-                const isBusy = analyzingId === item.id;
-                return (
-                  <View
-                    key={item.id}
-                    className="w-60 bg-white dark:bg-slate-800 rounded-2xl p-3.5 mr-3 border border-slate-200 dark:border-slate-700 justify-between"
-                  >
-                    <View>
-                      {item.subject && (
-                        <Text
-                          className="text-[11px] font-bold mb-1"
-                          style={{ color: item.subject.color || "#3b82f6" }}
-                          numberOfLines={1}
-                        >
-                          {item.subject.name}
-                        </Text>
-                      )}
-                      <Text
-                        className="text-sm font-bold text-slate-900 dark:text-white mb-3"
-                        numberOfLines={2}
-                      >
-                        {item.title}
-                      </Text>
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() => analyzeOneMutation.mutate(item.id)}
-                      disabled={isBusy}
-                      className="bg-brand-50 dark:bg-brand-950/60 border border-brand-200 dark:border-brand-800 py-2 rounded-xl flex-row items-center justify-center"
-                    >
-                      {isBusy ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={isDark ? "#93c5fd" : "#2563eb"}
-                        />
-                      ) : (
-                        <>
-                          <Sparkles
-                            size={14}
-                            color={isDark ? "#93c5fd" : "#2563eb"}
-                          />
-                          <Text className="text-xs font-semibold text-brand-700 dark:text-brand-300 ml-1.5">
-                            Analyze
-                          </Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Course Filter Chips */}
-        {uniqueSubjects.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            className="mb-4"
-          >
-            <TouchableOpacity
-              onPress={() => setSelectedSubjectId(null)}
-              className={`mr-2 px-3.5 py-2 rounded-2xl border ${
-                selectedSubjectId === null
-                  ? "bg-brand-600 border-brand-600"
-                  : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-              }`}
-            >
-              <Text
-                className={`text-xs font-semibold ${
-                  selectedSubjectId === null
-                    ? "text-white"
-                    : "text-slate-700 dark:text-slate-300"
-                }`}
+            {/* Course Filter Chips */}
+            {uniqueSubjects.length > 0 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                className="mb-4"
               >
-                All Courses
-              </Text>
-            </TouchableOpacity>
-
-            {uniqueSubjects.map((sub) => {
-              const isSelected = selectedSubjectId === sub.id;
-              return (
                 <TouchableOpacity
-                  key={sub.id}
-                  onPress={() =>
-                    setSelectedSubjectId(isSelected ? null : sub.id)
-                  }
-                  className={`mr-2 px-3.5 py-2 rounded-2xl border flex-row items-center ${
-                    isSelected
+                  onPress={() => setSelectedSubjectId(null)}
+                  className={`mr-2 px-3.5 py-2 rounded-2xl border ${
+                    selectedSubjectId === null
                       ? "bg-brand-600 border-brand-600"
                       : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                   }`}
                 >
-                  <View
-                    className="w-2 h-2 rounded-full mr-1.5"
-                    style={{ backgroundColor: sub.color || "#3b82f6" }}
-                  />
                   <Text
                     className={`text-xs font-semibold ${
-                      isSelected
+                      selectedSubjectId === null
                         ? "text-white"
                         : "text-slate-700 dark:text-slate-300"
                     }`}
                   >
-                    {sub.name}
+                    All Courses
                   </Text>
                 </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        )}
 
-        {/* Analyzed Coursework Summaries */}
-        {filteredSummaries.length > 0 ? (
-          filteredSummaries.map((item) => {
-            const adoptedSet = new Set(item.adopted_titles);
-            const subjectColor = item.assignment.subject?.color || "#3b82f6";
-            const isRecent = recentlyAnalyzedId === item.id;
-
-            return (
-              <View
-                key={item.id}
-                className={`bg-white dark:bg-slate-800 rounded-3xl p-5 mb-4 border ${
-                  isRecent
-                    ? "border-emerald-400 dark:border-emerald-500"
-                    : "border-slate-200 dark:border-slate-700"
-                }`}
-              >
-                {isRecent && (
-                  <View className="flex-row items-center mb-2">
-                    <View className="bg-emerald-100 dark:bg-emerald-950/70 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 flex-row items-center">
-                      <Sparkles size={11} color="#10b981" />
-                      <Text className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 ml-1">
-                        Just Analyzed
+                {uniqueSubjects.map((sub) => {
+                  const isSelected = selectedSubjectId === sub.id;
+                  return (
+                    <TouchableOpacity
+                      key={sub.id}
+                      onPress={() =>
+                        setSelectedSubjectId(isSelected ? null : sub.id)
+                      }
+                      className={`mr-2 px-3.5 py-2 rounded-2xl border flex-row items-center ${
+                        isSelected
+                          ? "bg-brand-600 border-brand-600"
+                          : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                      }`}
+                    >
+                      <View
+                        className="w-2 h-2 rounded-full mr-1.5"
+                        style={{ backgroundColor: sub.color || "#3b82f6" }}
+                      />
+                      <Text
+                        className={`text-xs font-semibold ${
+                          isSelected
+                            ? "text-white"
+                            : "text-slate-700 dark:text-slate-300"
+                        }`}
+                      >
+                        {sub.name}
                       </Text>
-                    </View>
-                  </View>
-                )}
-                {/* Top Metadata Row: Course Pill (truncated) + Priority/Status */}
-                <View className="flex-row items-center justify-between mb-2.5">
-                  <View className="flex-1 mr-2">
-                    {item.assignment.subject ? (
-                      <View
-                        className="px-2.5 py-1 rounded-full flex-row items-center self-start max-w-full"
-                        style={{ backgroundColor: `${subjectColor}18` }}
-                      >
-                        <View
-                          className="w-2 h-2 rounded-full mr-1.5 flex-shrink-0"
-                          style={{ backgroundColor: subjectColor }}
-                        />
-                        <Text
-                          className="text-xs font-semibold flex-shrink"
-                          style={{ color: subjectColor }}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {item.assignment.subject.name}
-                        </Text>
-                      </View>
-                    ) : (
-                      <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full self-start">
-                        <Text className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                          General
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full flex-shrink-0">
-                    <Text className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                      {item.assignment.status.label}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Assignment Title Link */}
-                <TouchableOpacity
-                  onPress={() => router.push(`/assignment/${item.assignment.id}`)}
-                  className="flex-row items-center justify-between mb-2"
-                >
-                  <Text
-                    className="text-base font-bold text-slate-900 dark:text-white flex-1 mr-2"
-                    numberOfLines={2}
-                  >
-                    {item.assignment.title}
-                  </Text>
-                  <ChevronRight size={16} color="#94a3b8" />
-                </TouchableOpacity>
-
-                {/* AI Summary & Study Tip */}
-                <Text className="text-xs text-slate-600 dark:text-slate-300 leading-5 mb-2">
-                  {item.summary}
-                </Text>
-                {item.deadlines && item.deadlines.length > 0 && (
-                  <View className="flex-row flex-wrap gap-1.5 mb-2">
-                    {item.deadlines.map((dl, dlIdx) => (
-                      <View
-                        key={dlIdx}
-                        className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800"
-                      >
-                        <Text className="text-[11px] font-medium text-amber-800 dark:text-amber-300">
-                          Date hint: {dl}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
-                <Text className="text-[11px] font-medium text-brand-700 dark:text-brand-300 mb-3">
-                  Tip: {item.study_tip}
-                </Text>
-
-                {/* Dedicated Study Effort Metadata Row */}
-                <View className="flex-row items-center flex-wrap gap-2 mb-3">
-                  <View className="flex-row items-center bg-slate-100 dark:bg-slate-700/80 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-600">
-                    <Clock size={12} color={isDark ? "#94a3b8" : "#64748b"} />
-                    <Text className="text-xs font-semibold text-slate-700 dark:text-slate-200 ml-1.5">
-                      ~{formatDuration(item.estimated_minutes)} · {item.complexity}
-                    </Text>
-                  </View>
-
-                  <View className="bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1 rounded-xl">
-                    <Text className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                      {item.assignment.completed_subtask_count}/{item.assignment.subtask_count} subtasks done
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Suggested Subtasks */}
-                {item.suggested_subtasks.length > 0 && (
-                  <View className="pt-3 border-t border-slate-100 dark:border-slate-700">
-                    <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
-                      Suggested Study Tasks
-                    </Text>
-
-                    {item.suggested_subtasks.slice(0, 4).map((suggestion, idx) => {
-                      const isAdopted = adoptedSet.has(
-                        suggestion.toLowerCase().trim()
-                      );
-                      const isAdopting =
-                        adoptingKey === `${item.assignment.id}:${suggestion}`;
-
-                      return (
-                        <View
-                          key={idx}
-                          className="flex-row items-center justify-between py-1.5"
-                        >
-                          <Text
-                            className="text-xs text-slate-700 dark:text-slate-300 flex-1 mr-2"
-                            numberOfLines={2}
-                          >
-                            • {suggestion}
-                          </Text>
-
-                          {isAdopted ? (
-                            <View className="flex-row items-center bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-                              <CheckCircle2 size={12} color="#10b981" />
-                              <Text className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 ml-1">
-                                Added
-                              </Text>
-                            </View>
-                          ) : (
-                            <TouchableOpacity
-                              onPress={() =>
-                                adoptSubtaskMutation.mutate({
-                                  assignmentId: item.assignment.id,
-                                  title: suggestion,
-                                })
-                              }
-                              disabled={isAdopting}
-                              className="bg-brand-600 px-2.5 py-1 rounded-full flex-row items-center"
-                            >
-                              {isAdopting ? (
-                                <ActivityIndicator size="small" color="#ffffff" />
-                              ) : (
-                                <>
-                                  <Plus size={12} color="#ffffff" />
-                                  <Text className="text-[11px] font-semibold text-white ml-0.5">
-                                    Adopt
-                                  </Text>
-                                </>
-                              )}
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      );
-                    })}
-                  </View>
-                )}
-
-                {/* Feedback Footer */}
-                <View className="flex-row items-center justify-between pt-3 mt-2 border-t border-slate-100 dark:border-slate-700/70">
-                  <Text className="text-[11px] text-slate-400">
-                    Was this breakdown helpful?
-                  </Text>
-                  <View className="flex-row items-center gap-2">
-                    <TouchableOpacity
-                      onPress={() => feedbackCoalesced.trigger({ [item.id]: "UP" })}
-                      accessibilityLabel="Mark AI summary helpful"
-                      className={`px-2.5 py-1.5 rounded-xl border flex-row items-center ${
-                        item.user_rating === "UP"
-                          ? "bg-emerald-100 dark:bg-emerald-950/60 border-emerald-400"
-                          : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-                      }`}
-                    >
-                      <ThumbsUp
-                        size={13}
-                        color={
-                          item.user_rating === "UP" ? "#10b981" : "#94a3b8"
-                        }
-                      />
                     </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => feedbackCoalesced.trigger({ [item.id]: "DOWN" })}
-                      accessibilityLabel="Mark AI summary not helpful"
-                      className={`px-2.5 py-1.5 rounded-xl border flex-row items-center ${
-                        item.user_rating === "DOWN"
-                          ? "bg-rose-100 dark:bg-rose-950/60 border-rose-400"
-                          : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
-                      }`}
-                    >
-                      <ThumbsDown
-                        size={13}
-                        color={
-                          item.user_rating === "DOWN" ? "#e11d48" : "#94a3b8"
-                        }
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            );
-          })
-        ) : (
+                  );
+                })}
+              </ScrollView>
+            )}
+          </>
+        }
+        ListEmptyComponent={
           <View className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 items-center">
             <Sparkles size={40} color="#94a3b8" />
             <Text className="text-base font-bold text-slate-800 dark:text-white mt-3 text-center">
@@ -791,8 +575,226 @@ export default function AiAssistantWorkspaceScreen() {
               Analyze an assignment above or open any assignment detail screen to generate AI study suggestions.
             </Text>
           </View>
-        )}
-      </ScrollView>
+        }
+        renderItem={({ item }) => {
+          const adoptedSet = new Set(item.adopted_titles);
+          const subjectColor = item.assignment.subject?.color || "#3b82f6";
+          const isRecent = recentlyAnalyzedId === item.id;
+
+          return (
+            <View
+              className={`bg-white dark:bg-slate-800 rounded-3xl p-5 mb-4 border ${
+                isRecent
+                  ? "border-emerald-400 dark:border-emerald-500"
+                  : "border-slate-200 dark:border-slate-700"
+              }`}
+            >
+              {isRecent && (
+                <View className="flex-row items-center mb-2">
+                  <View className="bg-emerald-100 dark:bg-emerald-950/70 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 flex-row items-center">
+                    <Sparkles size={11} color="#10b981" />
+                    <Text className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 ml-1">
+                      Just Analyzed
+                    </Text>
+                  </View>
+                </View>
+              )}
+              {/* Top Metadata Row: Course Pill (truncated) + Priority/Status */}
+              <View className="flex-row items-center justify-between mb-2.5">
+                <View className="flex-1 mr-2">
+                  {item.assignment.subject ? (
+                    <View
+                      className="px-2.5 py-1 rounded-full flex-row items-center self-start max-w-full"
+                      style={{ backgroundColor: `${subjectColor}18` }}
+                    >
+                      <View
+                        className="w-2 h-2 rounded-full mr-1.5 flex-shrink-0"
+                        style={{ backgroundColor: subjectColor }}
+                      />
+                      <Text
+                        className="text-xs font-semibold flex-shrink"
+                        style={{ color: subjectColor }}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {item.assignment.subject.name}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full self-start">
+                      <Text className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                        General
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                <View className="bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full flex-shrink-0">
+                  <Text className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                    {item.assignment.status.label}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Assignment Title Link */}
+              <TouchableOpacity
+                onPress={() => router.push(`/assignment/${item.assignment.id}`)}
+                className="flex-row items-center justify-between mb-2"
+              >
+                <Text
+                  className="text-base font-bold text-slate-900 dark:text-white flex-1 mr-2"
+                  numberOfLines={2}
+                >
+                  {item.assignment.title}
+                </Text>
+                <ChevronRight size={16} color="#94a3b8" />
+              </TouchableOpacity>
+
+              {/* AI Summary & Study Tip */}
+              <Text className="text-xs text-slate-600 dark:text-slate-300 leading-5 mb-2">
+                {item.summary}
+              </Text>
+              {item.deadlines && item.deadlines.length > 0 && (
+                <View className="flex-row flex-wrap gap-1.5 mb-2">
+                  {item.deadlines.map((dl, dlIdx) => (
+                    <View
+                      key={dlIdx}
+                      className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800"
+                    >
+                      <Text className="text-[11px] font-medium text-amber-800 dark:text-amber-300">
+                        Date hint: {dl}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+              <Text className="text-[11px] font-medium text-brand-700 dark:text-brand-300 mb-3">
+                Tip: {item.study_tip}
+              </Text>
+
+              {/* Dedicated Study Effort Metadata Row */}
+              <View className="flex-row items-center flex-wrap gap-2 mb-3">
+                <View className="flex-row items-center bg-slate-100 dark:bg-slate-700/80 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-600">
+                  <Clock size={12} color={isDark ? "#94a3b8" : "#64748b"} />
+                  <Text className="text-xs font-semibold text-slate-700 dark:text-slate-200 ml-1.5">
+                    ~{formatDuration(item.estimated_minutes)} · {item.complexity}
+                  </Text>
+                </View>
+
+                <View className="bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1 rounded-xl">
+                  <Text className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    {item.assignment.completed_subtask_count}/{item.assignment.subtask_count} subtasks done
+                  </Text>
+                </View>
+              </View>
+
+              {/* Suggested Subtasks */}
+              {item.suggested_subtasks.length > 0 && (
+                <View className="pt-3 border-t border-slate-100 dark:border-slate-700">
+                  <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                    Suggested Study Tasks
+                  </Text>
+
+                  {item.suggested_subtasks.slice(0, 4).map((suggestion, idx) => {
+                    const isAdopted = adoptedSet.has(
+                      suggestion.toLowerCase().trim()
+                    );
+                    const isAdopting =
+                      adoptingKey === `${item.assignment.id}:${suggestion}`;
+
+                    return (
+                      <View
+                        key={idx}
+                        className="flex-row items-center justify-between py-1.5"
+                      >
+                        <Text
+                          className="text-xs text-slate-700 dark:text-slate-300 flex-1 mr-2"
+                          numberOfLines={2}
+                        >
+                          • {suggestion}
+                        </Text>
+
+                        {isAdopted ? (
+                          <View className="flex-row items-center bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
+                            <CheckCircle2 size={12} color="#10b981" />
+                            <Text className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 ml-1">
+                              Added
+                            </Text>
+                          </View>
+                        ) : (
+                          <TouchableOpacity
+                            onPress={() =>
+                              adoptSubtaskMutation.mutate({
+                                assignmentId: item.assignment.id,
+                                title: suggestion,
+                              })
+                            }
+                            disabled={isAdopting}
+                            className="bg-brand-600 px-2.5 py-1 rounded-full flex-row items-center"
+                          >
+                            {isAdopting ? (
+                              <ActivityIndicator size="small" color="#ffffff" />
+                            ) : (
+                              <>
+                                <Plus size={12} color="#ffffff" />
+                                <Text className="text-[11px] font-semibold text-white ml-0.5">
+                                  Adopt
+                                </Text>
+                              </>
+                            )}
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+
+              {/* Feedback Footer */}
+              <View className="flex-row items-center justify-between pt-3 mt-2 border-t border-slate-100 dark:border-slate-700/70">
+                <Text className="text-[11px] text-slate-400">
+                  Was this breakdown helpful?
+                </Text>
+                <View className="flex-row items-center gap-2">
+                  <TouchableOpacity
+                    onPress={() => feedbackCoalesced.trigger({ [item.id]: "UP" })}
+                    accessibilityLabel="Mark AI summary helpful"
+                    className={`px-2.5 py-1.5 rounded-xl border flex-row items-center ${
+                      item.user_rating === "UP"
+                        ? "bg-emerald-100 dark:bg-emerald-950/60 border-emerald-400"
+                        : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+                    }`}
+                  >
+                    <ThumbsUp
+                      size={13}
+                      color={
+                        item.user_rating === "UP" ? "#10b981" : "#94a3b8"
+                      }
+                    />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => feedbackCoalesced.trigger({ [item.id]: "DOWN" })}
+                    accessibilityLabel="Mark AI summary not helpful"
+                    className={`px-2.5 py-1.5 rounded-xl border flex-row items-center ${
+                      item.user_rating === "DOWN"
+                        ? "bg-rose-100 dark:bg-rose-950/60 border-rose-400"
+                        : "bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700"
+                    }`}
+                  >
+                    <ThumbsDown
+                      size={13}
+                      color={
+                        item.user_rating === "DOWN" ? "#e11d48" : "#94a3b8"
+                      }
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          );
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -26,6 +26,7 @@ import {
 import { apiClient } from "../../src/services/apiClient";
 import { useAssignmentFilterStore } from "../../src/stores/assignmentFilterStore";
 import { useThemeStore } from "../../src/stores/themeStore";
+import { STATUS_LABELS, PRIORITY_LABELS } from "../../src/constants/assignmentLabels";
 
 export interface AssignmentListItem {
   id: number;
@@ -52,20 +53,6 @@ interface SubjectOption {
   name: string;
   color: string;
 }
-
-const STATUS_LABELS: Record<string, string> = {
-  NOT_STARTED: "Not Started",
-  IN_PROGRESS: "In Progress",
-  COMPLETED: "Completed",
-};
-
-const PRIORITY_LABELS: Record<string, string> = {
-  LOW: "Low",
-  MEDIUM: "Medium",
-  MED: "Medium",
-  HIGH: "High",
-  URGENT: "Urgent",
-};
 
 const SORT_LABELS: Record<string, string> = {
   due_desc: "Due Latest",
